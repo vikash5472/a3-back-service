@@ -17,4 +17,8 @@ export class UserService {
     const newUser = new this.userModel(user);
     return newUser.save();
   }
+
+  async updateAppJwtToken(userId: string, appJwtToken: string): Promise<User | null> {
+    return this.userModel.findByIdAndUpdate(userId, { appJwtToken: appJwtToken }, { new: true }).exec();
+  }
 }

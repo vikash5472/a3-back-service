@@ -21,7 +21,10 @@ export class User {
   picture?: string;
 
   @Prop()
-  accessToken?: string;
+  googleAccessToken?: string;
+
+  @Prop()
+  appJwtToken?: string;
 
   
 

@@ -37,8 +37,11 @@ export class AuthService {
 
   async login(user: any) {
     const payload = { username: user.username, sub: user.userId };
+    const access_token = this.jwtService.sign(payload);
+    // Save the access token to the user's schema
+    await this.userService.updateAppJwtToken(user.userId, access_token);
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token,
     };
   }
 
@@ -47,7 +50,7 @@ export class AuthService {
       throw new UnauthorizedException('No user from Google');
     }
 
-    const { emails, firstName, lastName, picture, accessToken } = req.user;
+    const { emails, firstName, lastName, picture, accessToken: googleAccessToken } = req.user;
     const email = emails[0].value;
 
     let user = await this.userService.findOne(email);
@@ -58,7 +61,7 @@ export class AuthService {
         firstName,
         lastName,
         picture,
-        accessToken,
+        googleAccessToken,
       });
     } else {
       // Update user information if needed
