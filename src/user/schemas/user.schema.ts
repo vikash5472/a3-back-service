@@ -32,8 +32,6 @@ export class User {
   @Prop()
   tempEmail?: string;
 
-
-
   // You can add more fields here like name, profile picture, etc.
 }
 

@@ -1,4 +1,3 @@
-
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import helmet from 'helmet';
@@ -12,7 +11,9 @@ async function bootstrap() {
   app.use(helmet());
 
   // Global validation pipe for DTO validation and security
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
+  app.useGlobalPipes(
+    new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
+  );
 
   const config = new DocumentBuilder()
     .setTitle('NestJS API')

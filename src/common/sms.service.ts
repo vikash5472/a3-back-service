@@ -12,7 +12,7 @@ export class SmsService {
     if (provider === 'twilio') {
       this.smsProvider = provider;
     } else {
-      this.smsProvider = 'twilio'; 
+      this.smsProvider = 'twilio';
       console.warn('Invalid SMS_PROVIDER specified. Defaulting to Twilio.');
     }
 

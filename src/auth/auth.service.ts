@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import { PhoneStrategy } from './phone.strategy';
@@ -18,7 +22,9 @@ export class AuthService {
   async linkPhoneNumber(userId: string, phoneNumber: string): Promise<any> {
     const existingUser = await this.userService.findOne(phoneNumber);
     if (existingUser) {
-      throw new BadRequestException('Phone number already linked to another account');
+      throw new BadRequestException(
+        'Phone number already linked to another account',
+      );
     }
     const user = await this.userService.updateUser(userId, { phoneNumber });
     return { message: 'Phone number linked successfully', user };
@@ -33,7 +39,10 @@ export class AuthService {
     const verificationToken = uuidv4();
     const verificationLink = `http://localhost:3000/auth/verify-email?token=${verificationToken}`;
 
-    await this.userService.updateUser(userId, { emailVerificationToken: verificationToken, tempEmail: email });
+    await this.userService.updateUser(userId, {
+      emailVerificationToken: verificationToken,
+      tempEmail: email,
+    });
 
     const emailSent = await this.sendgridService.sendMail(
       email,
@@ -87,8 +96,6 @@ export class AuthService {
     throw new UnauthorizedException('Invalid OTP');
   }
 
-  
-
   async login(user: any) {
     const payload = { username: user.username, sub: user.userId };
     const access_token = this.jwtService.sign(payload);
@@ -104,7 +111,13 @@ export class AuthService {
       throw new UnauthorizedException('No user from Google');
     }
 
-    const { emails, firstName, lastName, picture, accessToken: googleAccessToken } = req.user;
+    const {
+      emails,
+      firstName,
+      lastName,
+      picture,
+      accessToken: googleAccessToken,
+    } = req.user;
     const email = emails[0].value;
 
     let user = await this.userService.findOne(email);

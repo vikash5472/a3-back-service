@@ -5,7 +5,11 @@ export class LoginOtpDto {
   @ApiProperty({ description: 'The phone number used for OTP login' })
   @IsString()
   @IsNotEmpty()
-  @IsMobilePhone(undefined, { strictMode: false }, { message: 'Please provide a valid phone number' })
+  @IsMobilePhone(
+    undefined,
+    { strictMode: false },
+    { message: 'Please provide a valid phone number' },
+  )
   phoneNumber: string;
 
   @ApiProperty({ description: 'The OTP received' })

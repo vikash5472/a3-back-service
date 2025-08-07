@@ -25,7 +25,15 @@ import { SendgridService } from '../common/sendgrid.service';
     }),
     UserModule,
   ],
-  providers: [JwtStrategy, AuthService, GoogleStrategy, PhoneStrategy, OtpService, SmsService, SendgridService],
+  providers: [
+    JwtStrategy,
+    AuthService,
+    GoogleStrategy,
+    PhoneStrategy,
+    OtpService,
+    SmsService,
+    SendgridService,
+  ],
   exports: [AuthService, JwtModule, PassportModule],
   controllers: [AuthController],
 })

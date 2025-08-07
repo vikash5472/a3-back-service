@@ -8,7 +8,12 @@ export class SendgridService {
     sgMail.setApiKey(this.configService.get<string>('SENDGRID_API_KEY')!);
   }
 
-  async sendMail(to: string, subject: string, text: string, html?: string): Promise<boolean> {
+  async sendMail(
+    to: string,
+    subject: string,
+    text: string,
+    html?: string,
+  ): Promise<boolean> {
     const msg = {
       to,
       from: this.configService.get<string>('SENDGRID_SENDER_EMAIL')!, // Use your verified sender email
