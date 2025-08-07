@@ -9,6 +9,7 @@ This document outlines the functionalities that have been implemented in the app
 2.  **Session Management:**
     *   Upon successful authentication, a JWT (JSON Web Token) is generated and sent as a response.
     *   The application stores the active JWT for each user (`appJwtToken` in the user schema) to enable immediate session invalidation.
+    *   Real-time user token invalidation is implemented by comparing the presented JWT with the `appJwtToken` stored in the user's schema.
     *   Routes can be protected using JWT for authorization (e.g., `/profile`).
 
 3.  **OTP Service:**
