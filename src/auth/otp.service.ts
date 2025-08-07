@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as NodeCache from 'node-cache';
-import { SmsService } from './sms.service';
+import { SmsService } from '../common/sms.service';
 
 @Injectable()
 export class OtpService {

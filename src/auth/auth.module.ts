@@ -9,7 +9,7 @@ import { AuthController } from './auth.controller';
 import { GoogleStrategy } from './google.strategy';
 import { PhoneStrategy } from './phone.strategy';
 import { OtpService } from './otp.service';
-import { SmsService } from './sms.service';
+import { SmsService } from '../common/sms.service';
 import { SendgridService } from '../common/sendgrid.service';
 
 @Module({
