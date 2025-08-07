@@ -5,6 +5,8 @@ This document outlines the functionalities that have been implemented in the app
 1.  **User Authentication:**
     *   Users can sign up and log in using Google OAuth.
     *   Users can sign up and log in using their phone number via OTP (One-Time Password).
+    *   Authenticated users can link a phone number to their profile.
+    *   Authenticated users can link an email address to their profile, with email verification via SendGrid.
 
 2.  **Session Management:**
     *   Upon successful authentication, a JWT (JSON Web Token) is generated and sent as a response.

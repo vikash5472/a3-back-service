@@ -21,4 +21,12 @@ export class UserService {
   async updateAppJwtToken(userId: string, appJwtToken: string): Promise<User | null> {
     return this.userModel.findByIdAndUpdate(userId, { appJwtToken: appJwtToken }, { new: true }).exec();
   }
+
+  async updateUser(userId: string, update: Partial<User>): Promise<User | null> {
+    return this.userModel.findByIdAndUpdate(userId, update, { new: true }).exec();
+  }
+
+  async findByEmailVerificationToken(token: string): Promise<UserDocument | null> {
+    return this.userModel.findOne({ emailVerificationToken: token }).exec();
+  }
 }

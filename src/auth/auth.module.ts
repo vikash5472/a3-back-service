@@ -10,6 +10,7 @@ import { GoogleStrategy } from './google.strategy';
 import { PhoneStrategy } from './phone.strategy';
 import { OtpService } from './otp.service';
 import { SmsService } from './sms.service';
+import { SendgridService } from '../common/sendgrid.service';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { SmsService } from './sms.service';
     }),
     UserModule,
   ],
-  providers: [JwtStrategy, AuthService, GoogleStrategy, PhoneStrategy, OtpService, SmsService],
+  providers: [JwtStrategy, AuthService, GoogleStrategy, PhoneStrategy, OtpService, SmsService, SendgridService],
   exports: [AuthService, JwtModule, PassportModule],
   controllers: [AuthController],
 })

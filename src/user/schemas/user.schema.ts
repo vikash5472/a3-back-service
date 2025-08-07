@@ -26,6 +26,12 @@ export class User {
   @Prop()
   appJwtToken?: string;
 
+  @Prop()
+  emailVerificationToken?: string;
+
+  @Prop()
+  tempEmail?: string;
+
   
 
   // You can add more fields here like name, profile picture, etc.
