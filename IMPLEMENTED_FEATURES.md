@@ -17,7 +17,7 @@ This document outlines the functionalities that have been implemented in the app
 3.  **OTP Service:**
     *   Users can request a maximum of 2 OTPs within a 1-hour window.
     *   After 2 invalid OTP attempts, a user will be blocked from requesting/verifying OTPs for the next 2 hours.
-    *   OTP SMS messages are sent using Twilio.
+    *   OTP SMS messages are sent using a generic SMS service (Twilio implemented).
     *   Node-cache is used for OTP rate limiting and blocking.
 
 4.  **API Documentation:**
