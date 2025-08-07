@@ -9,6 +9,7 @@ import { AuthController } from './auth.controller';
 import { GoogleStrategy } from './google.strategy';
 import { PhoneStrategy } from './phone.strategy';
 import { OtpService } from './otp.service';
+import { SmsService } from './sms.service';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { OtpService } from './otp.service';
     }),
     UserModule,
   ],
-  providers: [JwtStrategy, AuthService, GoogleStrategy, PhoneStrategy, OtpService],
+  providers: [JwtStrategy, AuthService, GoogleStrategy, PhoneStrategy, OtpService, SmsService],
   exports: [AuthService, JwtModule, PassportModule],
   controllers: [AuthController],
 })
