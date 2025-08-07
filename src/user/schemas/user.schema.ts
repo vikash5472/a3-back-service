@@ -12,7 +12,18 @@ export class User {
   phoneNumber?: string;
 
   @Prop()
-  password?: string; // Hashed password for local authentication
+  firstName?: string;
+
+  @Prop()
+  lastName?: string;
+
+  @Prop()
+  picture?: string;
+
+  @Prop()
+  accessToken?: string;
+
+  
 
   // You can add more fields here like name, profile picture, etc.
 }

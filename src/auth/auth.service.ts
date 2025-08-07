@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import { PhoneStrategy } from './phone.strategy';
@@ -16,7 +16,7 @@ export class AuthService {
     if (success) {
       return { message: 'OTP sent successfully' };
     }
-    return { message: 'Failed to send OTP' };
+    throw new BadRequestException('Failed to send OTP');
   }
 
   async loginWithOtp(phoneNumber: string, otp: string): Promise<any> {
@@ -26,20 +26,14 @@ export class AuthService {
       if (user) {
         return this.login(user);
       }
-      // In a real app, you might want to create a new user here
-      return { message: 'User not found' };
+      // Create new user if not found
+      const newUser = await this.userService.create({ phoneNumber });
+      return this.login(newUser);
     }
-    return { message: 'Invalid OTP' };
+    throw new UnauthorizedException('Invalid OTP');
   }
 
-  async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.userService.findOne(username);
-    if (user && user.password === pass) { // In a real app, you'd hash and compare passwords
-      const { password, ...result } = user;
-      return result;
-    }
-    return null;
-  }
+  
 
   async login(user: any) {
     const payload = { username: user.username, sub: user.userId };
@@ -48,14 +42,31 @@ export class AuthService {
     };
   }
 
-  googleLogin(req) {
+  async googleLogin(req) {
     if (!req.user) {
-      return 'No user from google';
+      throw new UnauthorizedException('No user from Google');
     }
 
-    return {
-      message: 'User information from google',
-      user: req.user,
-    };
+    const { emails, firstName, lastName, picture, accessToken } = req.user;
+    const email = emails[0].value;
+
+    let user = await this.userService.findOne(email);
+
+    if (!user) {
+      user = await this.userService.create({
+        email,
+        firstName,
+        lastName,
+        picture,
+        accessToken,
+      });
+    } else {
+      // Update user information if needed
+      // For example, update accessToken or profile picture
+      // user.accessToken = accessToken;
+      // await user.save(); // Assuming user is a Mongoose document
+    }
+
+    return this.login(user);
   }
 }
