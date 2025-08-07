@@ -11,6 +11,16 @@ import { JwtAuthGuard } from './jwt-auth/jwt-auth.guard';
 export class AuthController {
   constructor(private authService: AuthService) { }
 
+  @Post('send-otp')
+  @ApiOperation({ summary: 'Sends an OTP to a phone number' })
+  @ApiBody({ schema: { properties: { phoneNumber: { type: 'string' } } } })
+  @ApiResponse({ status: 201, description: 'Successfully sent OTP.' })
+  @ApiResponse({ status: 400, description: 'Bad request.' })
+  @ApiResponse({ status: 429, description: 'Too many requests.' })
+  async sendOtp(@Body('phoneNumber') phoneNumber: string) {
+    return this.authService.sendOtp(phoneNumber);
+  }
+
   @Post('login')
   @ApiOperation({ summary: 'Logs in a user' })
   @ApiBody({ type: LoginDto })
@@ -27,6 +37,16 @@ export class AuthController {
       return { message: 'Invalid credentials' };
     }
     return this.authService.login(user);
+  }
+
+  @Post('login-otp')
+  @ApiOperation({ summary: 'Logs in a user with an OTP' })
+  @ApiBody({ schema: { properties: { phoneNumber: { type: 'string' }, otp: { type: 'string' } } } })
+  @ApiResponse({ status: 201, description: 'Successfully logged in.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiResponse({ status: 429, description: 'Too many requests.' })
+  async loginOtp(@Body('phoneNumber') phoneNumber: string, @Body('otp') otp: string) {
+    return this.authService.loginWithOtp(phoneNumber, otp);
   }
 
   @UseGuards(JwtAuthGuard)
