@@ -1,19 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as Twilio from 'twilio';
+import axios from 'axios';
 
 @Injectable()
 export class SmsService {
-  private smsProvider: 'twilio';
+  private smsProvider: 'twilio' | 'msg91';
   private twilioClient;
 
   constructor(private configService: ConfigService) {
     const provider = this.configService.get<string>('SMS_PROVIDER');
-    if (provider === 'twilio') {
+    if (provider === 'twilio' || provider === 'msg91') {
       this.smsProvider = provider;
     } else {
       this.smsProvider = 'twilio';
-      console.warn('Invalid SMS_PROVIDER specified. Defaulting to Twilio.');
+      Logger.warn('Invalid SMS_PROVIDER specified. Defaulting to msg91.');
+      this.smsProvider = 'msg91';
     }
 
     if (this.smsProvider === 'twilio') {
@@ -34,7 +36,49 @@ export class SmsService {
         });
         return true;
       } catch (error) {
-        console.error(error);
+        Logger.error(error);
+        return false;
+      }
+    } else if (this.smsProvider === 'msg91') {
+      try {
+        const otpMatch = message.match(/\d+/); // Assuming OTP is the first sequence of digits in the message
+        const otp = otpMatch ? otpMatch[0] : "";
+
+        if (!otp) {
+            Logger.error("[SMS Service] MSG91: Could not extract OTP from message", { message });
+            throw new Error("Could not extract OTP from message for MSG91.");
+        }
+
+        const url = "https://control.msg91.com/api/v5/flow";
+        const authKey = this.configService.get('MSG91_AUTH_KEY');
+        const templateId = this.configService.get('MSG91_TEMPLATE_ID');
+
+        const body = {
+            template_id: templateId,
+            recipients: [
+                {
+                    mobiles: to.replace("+", ""),
+                    number: parseInt(otp),
+                },
+            ],
+        };
+
+        const config = {
+            headers: {
+                accept: "application/json",
+                authkey: authKey,
+                "content-type": "application/json",
+            },
+        };
+
+        const { data } = await axios.post(url, body, config);
+        Logger.log("[SMS Service] MSG91: OTP sent via SMS", { data });
+        return true;
+      } catch (error) {
+        Logger.error("[SMS Service] MSG91: Error sending OTP", {
+            error: error.message,
+            response: error.response?.data,
+        });
         return false;
       }
     }
