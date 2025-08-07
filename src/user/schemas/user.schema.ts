@@ -3,7 +3,7 @@ import { HydratedDocument } from 'mongoose';
 
 export type UserDocument = HydratedDocument<User>;
 
-@Schema()
+@Schema({ timestamps: true })
 export class User {
   @Prop({ unique: true, sparse: true })
   email?: string;
@@ -32,7 +32,7 @@ export class User {
   @Prop()
   tempEmail?: string;
 
-  
+
 
   // You can add more fields here like name, profile picture, etc.
 }
