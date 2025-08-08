@@ -1,23 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
-
-export enum VideoRequestStatus {
-  PENDING = 'pending',
-  PROCESSING = 'processing',
-  COMPLETED = 'completed',
-  FAILED = 'failed',
-}
-
-export enum VideoResolution {
-  P720 = '720p',
-  P1080 = '1080p',
-  P4K = '4K',
-}
-
-export enum VideoAspectRatio {
-  AR16_9 = '16:9',
-  AR1_1 = '1:1',
-}
+import { VideoRequestStatus, VideoResolution, VideoAspectRatio } from '../../common/enums';
 
 @Schema({ _id: false })
 class VideoMetadata {
@@ -31,10 +14,10 @@ class VideoMetadata {
   durationSeconds: number;
 
   @Prop({ required: true, enum: Object.values(VideoResolution) })
-  resolution: string;
+  resolution: VideoResolution;
 
   @Prop({ required: true, enum: Object.values(VideoAspectRatio) })
-  aspectRatio: string;
+  aspectRatio: VideoAspectRatio;
 }
 
 @Schema({ _id: false })
@@ -64,10 +47,10 @@ export class VideoRequest extends Document {
   category: string;
 
   @Prop({ required: true, enum: Object.values(VideoResolution) })
-  resolution: string;
+  resolution: VideoResolution;
 
   @Prop({ required: true, enum: Object.values(VideoAspectRatio) })
-  aspectRatio: string;
+  aspectRatio: VideoAspectRatio;
 
   @Prop({ required: true })
   durationSeconds: number;
@@ -78,7 +61,7 @@ export class VideoRequest extends Document {
     default: VideoRequestStatus.PENDING,
     index: true,
   })
-  status: string;
+  status: VideoRequestStatus;
 
   @Prop({ default: 0 })
   retryCount: number;
