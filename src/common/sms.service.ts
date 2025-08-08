@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as Twilio from 'twilio';
 import axios from 'axios';
@@ -37,11 +37,11 @@ export class SmsService {
         return true;
       } catch (error) {
         Logger.error(error);
-        return false;
+        throw new InternalServerErrorException('Failed to send SMS');
       }
     } else if (this.smsProvider === 'msg91') {
       try {
-        const otpMatch = message.match(/\d+/); // Assuming OTP is the first sequence of digits in the message
+        const otpMatch = message.match(/\d+/);
         const otp = otpMatch ? otpMatch[0] : '';
 
         if (!otp) {
@@ -82,7 +82,7 @@ export class SmsService {
           error: error.message,
           response: error.response?.data,
         });
-        return false;
+        throw new InternalServerErrorException('Failed to send SMS');
       }
     }
     return false;

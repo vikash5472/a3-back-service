@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { VideoRequest } from './schemas/video-request.schema';
@@ -7,6 +7,7 @@ import { UpdateVideoRequestDto } from './dto/update-video-request.dto';
 
 @Injectable()
 export class VideoRequestsService {
+  private readonly logger = new Logger(VideoRequestsService.name);
   constructor(
     @InjectModel(VideoRequest.name)
     private videoRequestModel: Model<VideoRequest>,
@@ -15,21 +16,39 @@ export class VideoRequestsService {
   async create(
     createVideoRequestDto: CreateVideoRequestDto,
   ): Promise<VideoRequest> {
-    const createdVideoRequest = new this.videoRequestModel(
-      createVideoRequestDto,
-    );
-    return createdVideoRequest.save();
+    try {
+      const createdVideoRequest = new this.videoRequestModel(
+        createVideoRequestDto,
+      );
+      return await createdVideoRequest.save();
+    } catch (error) {
+      this.logger.error(`Failed to create video request: ${error.message}`);
+      throw new InternalServerErrorException('Failed to create video request');
+    }
   }
 
   async findAll(): Promise<VideoRequest[]> {
-    return this.videoRequestModel.find().exec();
+    try {
+      return await this.videoRequestModel.find().exec();
+    } catch (error) {
+      this.logger.error(`Failed to get video requests: ${error.message}`);
+      throw new InternalServerErrorException('Failed to get video requests');
+    }
   }
 
   async findOne(id: string): Promise<VideoRequest> {
-    const videoRequest = await this.videoRequestModel.findById(id).exec();
+    let videoRequest;
+    try {
+      videoRequest = await this.videoRequestModel.findById(id).exec();
+    } catch (error) {
+      this.logger.error(`Failed to get video request with id ${id}: ${error.message}`);
+      throw new InternalServerErrorException('Failed to get video request');
+    }
+
     if (!videoRequest) {
       throw new NotFoundException(`Video request with id ${id} not found`);
     }
+
     return videoRequest;
   }
 
@@ -37,24 +56,40 @@ export class VideoRequestsService {
     id: string,
     updateVideoRequestDto: UpdateVideoRequestDto,
   ): Promise<VideoRequest> {
-    const updatedVideoRequest = await this.videoRequestModel
-      .findByIdAndUpdate(id, updateVideoRequestDto, { new: true })
-      .exec();
-    if (!updatedVideoRequest) {
-      throw new NotFoundException(`Video request with id ${id} not found`);
+    try {
+      const updatedVideoRequest = await this.videoRequestModel
+        .findByIdAndUpdate(id, updateVideoRequestDto, { new: true })
+        .exec();
+      if (!updatedVideoRequest) {
+        throw new NotFoundException(`Video request with id ${id} not found`);
+      }
+      return updatedVideoRequest;
+    } catch (error) {
+      this.logger.error(`Failed to update video request with id ${id}: ${error.message}`);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to update video request');
     }
-    return updatedVideoRequest;
   }
 
   async createModification(
     id: string,
     createVideoRequestDto: CreateVideoRequestDto,
   ): Promise<VideoRequest> {
-    const parentRequest = await this.findOne(id);
-    const modification = new this.videoRequestModel({
-      ...createVideoRequestDto,
-      parentRequestId: parentRequest._id,
-    });
-    return modification.save();
+    try {
+      const parentRequest = await this.findOne(id);
+      const modification = new this.videoRequestModel({
+        ...createVideoRequestDto,
+        parentRequestId: parentRequest._id,
+      });
+      return await modification.save();
+    } catch (error) {
+      this.logger.error(`Failed to create modification for video request with id ${id}: ${error.message}`);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to create modification');
+    }
   }
 }

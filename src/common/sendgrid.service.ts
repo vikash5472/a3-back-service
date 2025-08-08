@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as sgMail from '@sendgrid/mail';
 
 @Injectable()
 export class SendgridService {
+  private readonly logger = new Logger(SendgridService.name);
   constructor(private configService: ConfigService) {
     sgMail.setApiKey(this.configService.get<string>('SENDGRID_API_KEY')!);
   }
@@ -16,7 +17,7 @@ export class SendgridService {
   ): Promise<boolean> {
     const msg = {
       to,
-      from: this.configService.get<string>('SENDGRID_SENDER_EMAIL')!, // Use your verified sender email
+      from: this.configService.get<string>('SENDGRID_SENDER_EMAIL')!,
       subject,
       text,
       html: html || text,
@@ -26,8 +27,8 @@ export class SendgridService {
       await sgMail.send(msg);
       return true;
     } catch (error) {
-      console.error('SendGrid Email Error:', error.response?.body || error);
-      return false;
+      this.logger.error(`Failed to send email: ${error.message}`);
+      throw new InternalServerErrorException('Failed to send email');
     }
   }
 }
