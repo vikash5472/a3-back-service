@@ -33,5 +33,5 @@ This document outlines the functionalities that have been implemented in the app
     - Best practices and standards have been followed in the implementation.
     - The application uses Mongoose for MongoDB integration and user persistence.
 
-6.  **Scalability & Optimization:**
+7.  **Scalability & Optimization:**
     - The logic is designed to be optimized and scalable within the current architecture.

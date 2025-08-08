@@ -5,9 +5,9 @@ import { User, UserDocument } from './schemas/user.schema';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) { }
 
-  async findOne(username: string): Promise<User | undefined> {
+  async findOne(username: string): Promise<UserDocument | undefined> {
     // This method should find a user by email or phone number
     const user = await this.userModel
       .findOne({ $or: [{ email: username }, { phoneNumber: username }] })
@@ -15,7 +15,7 @@ export class UserService {
     return user || undefined;
   }
 
-  async create(user: User): Promise<User> {
+  async create(user: User): Promise<UserDocument> {
     const newUser = new this.userModel(user);
     return newUser.save();
   }

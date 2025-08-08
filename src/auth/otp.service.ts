@@ -29,7 +29,7 @@ export class OtpService {
     return false;
   }
 
-  async verifyOtp(phoneNumber: string, otp: string): Promise<boolean> {
+  verifyOtp(phoneNumber: string, otp: string): boolean {
     const failedAttempts =
       this.cache.get<number>(`${phoneNumber}:failedAttempts`) ?? 0;
     if (failedAttempts >= 2) {

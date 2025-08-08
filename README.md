@@ -61,6 +61,10 @@ $ pnpm run test:cov
 
 When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
 
+### Configuration Management
+
+For production environments, it is highly recommended to manage sensitive configuration data (e.g., API keys, database credentials) securely. Avoid committing `.env` files directly to version control. Consider using environment variables provided by your deployment platform or a dedicated secrets management service such as AWS Secrets Manager, Google Cloud Secret Manager, or HashiCorp Vault.
+
 If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
 
 ```bash

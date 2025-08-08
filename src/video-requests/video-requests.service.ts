@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { VideoRequest } from './schemas/video-request.schema';
@@ -22,7 +27,9 @@ export class VideoRequestsService {
       );
       return await createdVideoRequest.save();
     } catch (error) {
-      this.logger.error(`Failed to create video request: ${error.message}`);
+      this.logger.error(
+        `Failed to create video request: ${(error as any).message}`,
+      );
       throw new InternalServerErrorException('Failed to create video request');
     }
   }
@@ -31,7 +38,9 @@ export class VideoRequestsService {
     try {
       return await this.videoRequestModel.find().exec();
     } catch (error) {
-      this.logger.error(`Failed to get video requests: ${error.message}`);
+      this.logger.error(
+        `Failed to get video requests: ${(error as any).message}`,
+      );
       throw new InternalServerErrorException('Failed to get video requests');
     }
   }
@@ -41,7 +50,9 @@ export class VideoRequestsService {
     try {
       videoRequest = await this.videoRequestModel.findById(id).exec();
     } catch (error) {
-      this.logger.error(`Failed to get video request with id ${id}: ${error.message}`);
+      this.logger.error(
+        `Failed to get video request with id ${id}: ${(error as any).message}`,
+      );
       throw new InternalServerErrorException('Failed to get video request');
     }
 
@@ -49,7 +60,7 @@ export class VideoRequestsService {
       throw new NotFoundException(`Video request with id ${id} not found`);
     }
 
-    return videoRequest;
+    return videoRequest as VideoRequest;
   }
 
   async update(
@@ -65,7 +76,9 @@ export class VideoRequestsService {
       }
       return updatedVideoRequest;
     } catch (error) {
-      this.logger.error(`Failed to update video request with id ${id}: ${error.message}`);
+      this.logger.error(
+        `Failed to update video request with id ${id}: ${(error as any).message}`,
+      );
       if (error instanceof NotFoundException) {
         throw error;
       }
@@ -85,7 +98,9 @@ export class VideoRequestsService {
       });
       return await modification.save();
     } catch (error) {
-      this.logger.error(`Failed to create modification for video request with id ${id}: ${error.message}`);
+      this.logger.error(
+        `Failed to create modification for video request with id ${id}: ${(error as any).message}`,
+      );
       if (error instanceof NotFoundException) {
         throw error;
       }

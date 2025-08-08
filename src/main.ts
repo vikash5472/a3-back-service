@@ -2,10 +2,18 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import helmet from 'helmet';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { ValidationPipe, Logger } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
+import { Logger as NestLogger } from '@nestjs/common';
+import { PinoLogger as NestPinoLogger } from 'nestjs-pino';
+import { LoggerErrorInterceptor } from 'nestjs-pino';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+  });
+
+  // PinoLogger is automatically set up by nestjs-pino module, no need to use app.useLogger(app.get(NestPinoLogger))
+  app.useGlobalInterceptors(new LoggerErrorInterceptor());
 
   app.enableCors();
   app.use(helmet());
@@ -27,7 +35,7 @@ async function bootstrap() {
   const port = process.env.PORT ? Number(process.env.PORT) : 3000;
   await app.listen(port);
   // Use NestJS Logger for consistent logging
-  Logger.log(`Server running on http://localhost:${port}`, 'Bootstrap');
-  Logger.log(`Swagger docs at http://localhost:${port}/api`, 'Bootstrap');
+  NestLogger.log(`Server running on http://localhost:${port}`, 'Bootstrap');
+  NestLogger.log(`Swagger docs at http://localhost:${port}/api`, 'Bootstrap');
 }
-bootstrap();
+void bootstrap();

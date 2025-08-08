@@ -48,7 +48,10 @@ export class VideoRequestsController {
   }
 
   @Post(':id/modification')
-  @ApiOperation({ summary: 'Create a new video request using the given one as parentRequestId with a modified prompt' })
+  @ApiOperation({
+    summary:
+      'Create a new video request using the given one as parentRequestId with a modified prompt',
+  })
   createModification(
     @Param('id') id: string,
     @Body() createVideoRequestDto: CreateVideoRequestDto,

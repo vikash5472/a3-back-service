@@ -6,8 +6,6 @@ import {
   Request as ReqDecorator,
   Get,
   Req,
-  HttpException,
-  HttpStatus,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBody, ApiResponse } from '@nestjs/swagger';
@@ -19,7 +17,6 @@ import { LinkPhoneDto } from './dto/link-phone.dto';
 import { LinkEmailDto } from './dto/link-email.dto';
 
 import { JwtAuthGuard } from './jwt-auth/jwt-auth.guard';
-import { User } from '../user/schemas/user.schema';
 
 interface AuthenticatedRequest extends Request {
   user: { userId: string; username: string };
@@ -36,7 +33,7 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'Successfully sent OTP.' })
   @ApiResponse({ status: 400, description: 'Bad request.' })
   @ApiResponse({ status: 429, description: 'Too many requests.' })
-  async sendOtp(@Body() sendOtpDto: SendOtpDto) {
+  async sendOtp(@Body() sendOtpDto: SendOtpDto): Promise<{ message: string }> {
     return this.authService.sendOtp(sendOtpDto.phoneNumber);
   }
 
@@ -46,7 +43,9 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'Successfully logged in.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 429, description: 'Too many requests.' })
-  async loginOtp(@Body() loginOtpDto: LoginOtpDto) {
+  async loginOtp(
+    @Body() loginOtpDto: LoginOtpDto,
+  ): Promise<{ access_token: string }> {
     return this.authService.loginWithOtp(
       loginOtpDto.phoneNumber,
       loginOtpDto.otp,
@@ -71,7 +70,7 @@ export class AuthController {
   async linkPhone(
     @ReqDecorator() req: AuthenticatedRequest,
     @Body() linkPhoneDto: LinkPhoneDto,
-  ) {
+  ): Promise<{ message: string; user: any }> {
     return this.authService.linkPhoneNumber(
       req.user.userId,
       linkPhoneDto.phoneNumber,
@@ -97,7 +96,7 @@ export class AuthController {
   async linkEmail(
     @ReqDecorator() req: AuthenticatedRequest,
     @Body() linkEmailDto: LinkEmailDto,
-  ) {
+  ): Promise<{ message: string }> {
     return this.authService.linkEmail(req.user.userId, linkEmailDto.email);
   }
 
@@ -108,8 +107,8 @@ export class AuthController {
     status: 400,
     description: 'Invalid or expired verification token.',
   })
-  async verifyEmail(@Req() req) {
-    const token = req.query.token as string;
+  async verifyEmail(@Req() req): Promise<{ message: string }> {
+    const token = (req.query as { token: string }).token;
     return this.authService.verifyEmail(token);
   }
 
@@ -125,12 +124,12 @@ export class AuthController {
   @Get('google')
   @UseGuards(AuthGuard('google'))
   @ApiOperation({ summary: 'Initiates Google OAuth2 login' })
-  async googleAuth(@Req() req) {}
+  async googleAuth(@Req() req: Request): Promise<void> {}
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   @ApiOperation({ summary: 'Handles Google OAuth2 callback' })
-  googleAuthRedirect(@Req() req) {
+  googleAuthRedirect(@Req() req: any): Promise<{ access_token: string }> {
     return this.authService.googleLogin(req);
   }
 }

@@ -9,8 +9,22 @@ import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import { PhoneStrategy } from './phone.strategy';
 import { SendgridService } from '../common/sendgrid.service';
-import { User } from '../user/schemas/user.schema';
+import { CacheService } from '../common/cache.service';
+import { QueueService } from '../common/queue.service';
 import { v4 as uuidv4 } from 'uuid';
+
+interface UserPayload {
+  username: string;
+  sub: string;
+}
+
+interface GoogleUser {
+  emails: { value: string }[];
+  firstName: string;
+  lastName: string;
+  picture: string;
+  accessToken: string;
+}
 
 @Injectable()
 export class AuthService {
@@ -20,7 +34,9 @@ export class AuthService {
     private jwtService: JwtService,
     private phoneStrategy: PhoneStrategy,
     private sendgridService: SendgridService,
-  ) {}
+    private cacheService: CacheService,
+    private queueService: QueueService,
+  ) { }
 
   async linkPhoneNumber(userId: string, phoneNumber: string): Promise<any> {
     try {
@@ -33,7 +49,9 @@ export class AuthService {
       const user = await this.userService.updateUser(userId, { phoneNumber });
       return { message: 'Phone number linked successfully', user };
     } catch (error) {
-      this.logger.error(`Failed to link phone number: ${error.message}`);
+      this.logger.error(
+        `Failed to link phone number: ${error.message}`,
+      );
       if (error instanceof BadRequestException) {
         throw error;
       }
@@ -45,7 +63,9 @@ export class AuthService {
     try {
       const existingUser = await this.userService.findOne(email);
       if (existingUser) {
-        throw new BadRequestException('Email already linked to another account');
+        throw new BadRequestException(
+          'Email already linked to another account',
+        );
       }
 
       const verificationToken = uuidv4();
@@ -56,21 +76,26 @@ export class AuthService {
         tempEmail: email,
       });
 
-      const emailSent = await this.sendgridService.sendMail(
-        email,
-        'Verify your email address',
-        `Please click on the following link to verify your email: ${verificationLink}`,
-        `<p>Please click on the following link to verify your email: <a href="${verificationLink}">${verificationLink}</a></p>`,
-      );
+      this.queueService.addToQueue(async () => {
+        const emailSent = await this.sendgridService.sendMail(
+          email,
+          'Verify your email address',
+          `Please click on the following link to verify your email: ${verificationLink}`,
+          `<p>Please click on the following link to verify your email: <a href="${verificationLink}">${verificationLink}</a></p>`,
+        );
 
-      if (!emailSent) {
-        throw new InternalServerErrorException('Failed to send verification email');
-      }
+        if (!emailSent) {
+          this.logger.error('Failed to send verification email asynchronously');
+        }
+      });
 
       return { message: 'Verification email sent. Please check your inbox.' };
     } catch (error) {
       this.logger.error(`Failed to link email: ${error.message}`);
-      if (error instanceof BadRequestException || error instanceof InternalServerErrorException) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof InternalServerErrorException
+      ) {
         throw error;
       }
       throw new InternalServerErrorException('Failed to link email');
@@ -101,19 +126,22 @@ export class AuthService {
     }
   }
 
-  async sendOtp(phoneNumber: string): Promise<any> {
+  async sendOtp(phoneNumber: string): Promise<{ message: string }> {
     try {
-      const success = await this.phoneStrategy.sendOtp(phoneNumber);
-      if (success) {
-        return { message: 'OTP sent successfully' };
-      }
-      throw new InternalServerErrorException('Failed to send OTP');
+      this.queueService.addToQueue(async () => {
+        const success = this.phoneStrategy.sendOtp(phoneNumber);
+        if (!success) {
+          this.logger.error(
+            `Failed to send OTP asynchronously to ${phoneNumber}`,
+          );
+        }
+      });
+      return { message: 'OTP request queued successfully' };
     } catch (error) {
-      this.logger.error(`Failed to send OTP: ${error.message}`);
-      if (error instanceof InternalServerErrorException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Failed to send OTP');
+      this.logger.error(
+        `Failed to queue OTP request: ${error.message}`,
+      );
+      throw new InternalServerErrorException('Failed to queue OTP request');
     }
   }
 
@@ -123,11 +151,17 @@ export class AuthService {
       if (isValid) {
         const user = await this.userService.findOne(phoneNumber);
         if (user) {
-          return this.login(user);
+          return this.login({
+            userId: user._id?.toString(),
+            username: user.email ?? user.phoneNumber ?? '',
+          });
         }
         // Create new user if not found
         const newUser = await this.userService.create({ phoneNumber });
-        return this.login(newUser);
+        return this.login({
+          userId: newUser._id?.toString(),
+          username: newUser.email ?? newUser.phoneNumber ?? '',
+        });
       }
       throw new UnauthorizedException('Invalid OTP');
     } catch (error) {
@@ -139,12 +173,19 @@ export class AuthService {
     }
   }
 
-  async login(user: any): Promise<any> {
+  async login(user: {
+    userId: string;
+    username: string;
+  }): Promise<{ access_token: string }> {
     try {
-      const payload = { username: user.username, sub: user.userId };
+      const payload: UserPayload = {
+        username: user.username,
+        sub: user.userId,
+      };
       const access_token = this.jwtService.sign(payload);
       // Save the access token to the user's schema
       await this.userService.updateAppJwtToken(user.userId, access_token);
+      this.cacheService.set(`user_${user.userId}_token`, access_token, 3600); // Cache for 1 hour
       return {
         access_token,
       };
@@ -154,7 +195,9 @@ export class AuthService {
     }
   }
 
-  async googleLogin(req): Promise<any> {
+  async googleLogin(req: {
+    user: GoogleUser;
+  }): Promise<{ access_token: string }> {
     try {
       if (!req.user) {
         throw new UnauthorizedException('No user from Google');
@@ -186,9 +229,14 @@ export class AuthService {
         // await user.save(); // Assuming user is a Mongoose document
       }
 
-      return this.login(user);
+      return this.login({
+        userId: user._id?.toString(),
+        username: user.email ?? user.phoneNumber ?? '',
+      });
     } catch (error) {
-      this.logger.error(`Failed to login with Google: ${error.message}`);
+      this.logger.error(
+        `Failed to login with Google: ${error.message}`,
+      );
       if (error instanceof UnauthorizedException) {
         throw error;
       }

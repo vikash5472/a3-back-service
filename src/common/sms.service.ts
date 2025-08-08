@@ -1,4 +1,8 @@
-import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as Twilio from 'twilio';
 import axios from 'axios';
@@ -20,8 +24,8 @@ export class SmsService {
 
     if (this.smsProvider === 'twilio') {
       this.twilioClient = Twilio(
-        this.configService.get('TWILIO_ACCOUNT_SID'),
-        this.configService.get('TWILIO_AUTH_TOKEN'),
+        this.configService.get<string>('TWILIO_ACCOUNT_SID') as string,
+        this.configService.get<string>('TWILIO_AUTH_TOKEN') as string,
       );
     }
   }
@@ -29,7 +33,7 @@ export class SmsService {
   async sendSms(to: string, message: string): Promise<boolean> {
     if (this.smsProvider === 'twilio') {
       try {
-        await this.twilioClient.messages.create({
+        await (this.twilioClient.messages as any).create({
           body: message,
           from: this.configService.get('TWILIO_PHONE_NUMBER'),
           to,
@@ -56,8 +60,11 @@ export class SmsService {
         const authKey = this.configService.get('MSG91_AUTH_KEY');
         const templateId = this.configService.get('MSG91_TEMPLATE_ID');
 
-        const body = {
-          template_id: templateId,
+        const body: {
+          template_id: string;
+          recipients: { mobiles: string; number: number }[];
+        } = {
+          template_id: templateId as string,
           recipients: [
             {
               mobiles: to.replace('+', ''),
@@ -66,21 +73,23 @@ export class SmsService {
           ],
         };
 
-        const config = {
+        const config: {
+          headers: { accept: string; authkey: string; 'content-type': string };
+        } = {
           headers: {
             accept: 'application/json',
-            authkey: authKey,
+            authkey: authKey as string,
             'content-type': 'application/json',
           },
         };
 
-        const { data } = await axios.post(url, body, config);
-        Logger.log('[SMS Service] MSG91: OTP sent via SMS', { data });
+        const { data }: { data: any } = await axios.post(url, body, config);
+        Logger.log('[SMS Service] MSG91: OTP sent via SMS', { data: data as any });
         return true;
       } catch (error) {
         Logger.error('[SMS Service] MSG91: Error sending OTP', {
-          error: error.message,
-          response: error.response?.data,
+          error: (error as any).message,
+          response: (error as any).response?.data,
         });
         throw new InternalServerErrorException('Failed to send SMS');
       }

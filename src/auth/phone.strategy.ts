@@ -9,7 +9,7 @@ export class PhoneStrategy {
     return this.otpService.sendOtp(phoneNumber);
   }
 
-  async verifyOtp(phoneNumber: string, otp: string): Promise<boolean> {
+  verifyOtp(phoneNumber: string, otp: string): boolean {
     return this.otpService.verifyOtp(phoneNumber, otp);
   }
 }

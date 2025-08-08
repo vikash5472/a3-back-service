@@ -76,6 +76,7 @@ export class VideoRequest extends Document {
     required: true,
     enum: Object.values(VideoRequestStatus),
     default: VideoRequestStatus.PENDING,
+    index: true,
   })
   status: string;
 

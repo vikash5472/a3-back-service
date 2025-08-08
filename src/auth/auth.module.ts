@@ -9,21 +9,21 @@ import { AuthController } from './auth.controller';
 import { GoogleStrategy } from './google.strategy';
 import { PhoneStrategy } from './phone.strategy';
 import { OtpService } from './otp.service';
-import { SmsService } from '../common/sms.service';
-import { SendgridService } from '../common/sendgrid.service';
+import { CommonModule } from '../common/common.module';
 
 @Module({
   imports: [
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: { expiresIn: '7d' },
       }),
       inject: [ConfigService],
     }),
     UserModule,
+    CommonModule,
   ],
   providers: [
     JwtStrategy,
@@ -31,8 +31,6 @@ import { SendgridService } from '../common/sendgrid.service';
     GoogleStrategy,
     PhoneStrategy,
     OtpService,
-    SmsService,
-    SendgridService,
   ],
   exports: [AuthService, JwtModule, PassportModule],
   controllers: [AuthController],
