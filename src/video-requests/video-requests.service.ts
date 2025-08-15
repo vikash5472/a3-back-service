@@ -26,10 +26,8 @@ export class VideoRequestsService {
         createVideoRequestDto,
       );
       return await createdVideoRequest.save();
-    } catch (error) {
-      this.logger.error(
-        `Failed to create video request: ${(error as any).message}`,
-      );
+    } catch (error: any) {
+      this.logger.error(`Failed to create video request: ${error.message}`);
       throw new InternalServerErrorException('Failed to create video request');
     }
   }
@@ -37,10 +35,8 @@ export class VideoRequestsService {
   async findAll(): Promise<VideoRequest[]> {
     try {
       return await this.videoRequestModel.find().exec();
-    } catch (error) {
-      this.logger.error(
-        `Failed to get video requests: ${(error as any).message}`,
-      );
+    } catch (error: any) {
+      this.logger.error(`Failed to get video requests: ${error.message}`);
       throw new InternalServerErrorException('Failed to get video requests');
     }
   }
@@ -49,9 +45,9 @@ export class VideoRequestsService {
     let videoRequest;
     try {
       videoRequest = await this.videoRequestModel.findById(id).exec();
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
-        `Failed to get video request with id ${id}: ${(error as any).message}`,
+        `Failed to get video request with id ${id}: ${error.message}`,
       );
       throw new InternalServerErrorException('Failed to get video request');
     }
@@ -75,9 +71,9 @@ export class VideoRequestsService {
         throw new NotFoundException(`Video request with id ${id} not found`);
       }
       return updatedVideoRequest;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
-        `Failed to update video request with id ${id}: ${(error as any).message}`,
+        `Failed to update video request with id ${id}: ${error.message}`,
       );
       if (error instanceof NotFoundException) {
         throw error;
@@ -97,9 +93,9 @@ export class VideoRequestsService {
         parentRequestId: parentRequest._id,
       });
       return await modification.save();
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
-        `Failed to create modification for video request with id ${id}: ${(error as any).message}`,
+        `Failed to create modification for video request with id ${id}: ${error.message}`,
       );
       if (error instanceof NotFoundException) {
         throw error;

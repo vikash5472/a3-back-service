@@ -25,7 +25,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(req: Request, payload: JwtPayload) {
+  async validate(
+    req: Request,
+    payload: JwtPayload,
+  ): Promise<{ userId: string; username: string }> {
     const token = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
     const cachedToken = this.cacheService.get<string>(
       `user_${payload.sub}_token`,
@@ -39,6 +42,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!user || user.appJwtToken !== token) {
       throw new UnauthorizedException();
     }
-    return { userId: payload.sub, username: payload.username } as any;
+    return { userId: payload.sub, username: payload.username };
   }
 }

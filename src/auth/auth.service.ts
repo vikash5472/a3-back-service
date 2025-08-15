@@ -38,7 +38,9 @@ export class AuthService {
     private queueService: QueueService,
   ) {}
 
-  async register(registerUserDto: RegisterUserDto): Promise<any> {
+  async register(
+    registerUserDto: RegisterUserDto,
+  ): Promise<{ access_token: string }> {
     const { email, password, firstName, lastName } = registerUserDto;
     const existingUser = await this.userService.findOne(email);
     if (existingUser) {
@@ -66,7 +68,7 @@ export class AuthService {
     return null;
   }
 
-  async linkEmail(userId: string, email: string): Promise<any> {
+  async linkEmail(userId: string, email: string): Promise<{ message: string }> {
     try {
       const existingUser = await this.userService.findOne(email);
       if (existingUser) {
@@ -97,7 +99,7 @@ export class AuthService {
       });
 
       return { message: 'Verification email sent. Please check your inbox.' };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Failed to link email: ${error.message}`);
       if (
         error instanceof BadRequestException ||
@@ -109,7 +111,7 @@ export class AuthService {
     }
   }
 
-  async verifyEmail(token: string): Promise<any> {
+  async verifyEmail(token: string): Promise<{ message: string }> {
     try {
       const user = await this.userService.findByEmailVerificationToken(token);
 
@@ -124,7 +126,7 @@ export class AuthService {
       await user.save();
 
       return { message: 'Email verified successfully' };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Failed to verify email: ${error.message}`);
       if (error instanceof BadRequestException) {
         throw error;
@@ -149,7 +151,7 @@ export class AuthService {
       return {
         access_token,
       };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Failed to login: ${error.message}`);
       throw new InternalServerErrorException('Failed to login');
     }
@@ -193,10 +195,8 @@ export class AuthService {
         userId: user._id?.toString(),
         username: user.email ?? user.phoneNumber ?? '',
       });
-    } catch (error) {
-      this.logger.error(
-        `Failed to login with Google: ${error.message}`,
-      );
+    } catch (error: any) {
+      this.logger.error(`Failed to login with Google: ${error.message}`);
       if (error instanceof UnauthorizedException) {
         throw error;
       }

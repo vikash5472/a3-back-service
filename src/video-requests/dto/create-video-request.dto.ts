@@ -1,4 +1,11 @@
-import { IsString, IsNotEmpty, IsEnum, IsNumber, Min, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsEnum,
+  IsNumber,
+  Min,
+  IsOptional,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { VideoResolution, VideoAspectRatio } from '../../common/enums';
 
@@ -27,7 +34,8 @@ export class CreateVideoRequestDto {
   durationSeconds: number;
 
   @ApiProperty({
-    description: 'Optional: The ID of the video request this is a modification of',
+    description:
+      'Optional: The ID of the video request this is a modification of',
     required: false,
   })
   @IsOptional()

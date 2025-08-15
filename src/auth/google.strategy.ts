@@ -15,13 +15,18 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   }
 
   validate(
+    request: any,
     accessToken: string,
     refreshToken: string,
-    profile: any,
+    profile: {
+      name: { givenName: string; familyName: string };
+      emails: { value: string }[];
+      photos: { value: string }[];
+    },
     done: VerifyCallback,
   ): any {
     const { name, emails, photos } = profile;
-    const user: { email: string; firstName: string; lastName: string; picture: string; accessToken: string } = {
+    const user = {
       email: emails[0].value,
       firstName: name.givenName,
       lastName: name.familyName,

@@ -24,12 +24,7 @@ import { CommonModule } from '../common/common.module';
     UserModule,
     CommonModule,
   ],
-  providers: [
-    JwtStrategy,
-    AuthService,
-    GoogleStrategy,
-    LocalStrategy,
-  ],
+  providers: [JwtStrategy, AuthService, GoogleStrategy, LocalStrategy],
   exports: [AuthService, JwtModule, PassportModule],
   controllers: [AuthController],
 })

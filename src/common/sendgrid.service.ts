@@ -30,8 +30,8 @@ export class SendgridService {
     try {
       await sgMail.send(msg);
       return true;
-    } catch (error) {
-      this.logger.error(`Failed to send email: ${(error as any).message}`);
+    } catch (error: any) {
+      this.logger.error(`Failed to send email: ${error.message}`);
       throw new InternalServerErrorException('Failed to send email');
     }
   }

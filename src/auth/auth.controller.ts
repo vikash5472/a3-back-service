@@ -31,7 +31,9 @@ export class AuthController {
   @ApiBody({ type: RegisterUserDto })
   @ApiResponse({ status: 201, description: 'Successfully registered user.' })
   @ApiResponse({ status: 400, description: 'Bad request.' })
-  async register(@Body() registerUserDto: RegisterUserDto) {
+  async register(
+    @Body() registerUserDto: RegisterUserDto,
+  ): Promise<{ access_token: string }> {
     return this.authService.register(registerUserDto);
   }
 
@@ -41,7 +43,9 @@ export class AuthController {
   @ApiBody({ type: LoginUserDto })
   @ApiResponse({ status: 201, description: 'Successfully logged in.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  async login(@ReqDecorator() req: AuthenticatedRequest) {
+  async login(
+    @ReqDecorator() req: AuthenticatedRequest,
+  ): Promise<{ access_token: string }> {
     return this.authService.login(req.user);
   }
 
@@ -75,8 +79,10 @@ export class AuthController {
     status: 400,
     description: 'Invalid or expired verification token.',
   })
-  async verifyEmail(@Req() req): Promise<{ message: string }> {
-    const token = (req.query as { token: string }).token;
+  async verifyEmail(
+    @Req() req: { query: { token: string } },
+  ): Promise<{ message: string }> {
+    const token = req.query.token;
     return this.authService.verifyEmail(token);
   }
 
@@ -92,12 +98,14 @@ export class AuthController {
   @Get('google')
   @UseGuards(AuthGuard('google'))
   @ApiOperation({ summary: 'Initiates Google OAuth2 login' })
-  async googleAuth(@Req() req: Request): Promise<void> {}
+  async googleAuth(): Promise<void> {}
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   @ApiOperation({ summary: 'Handles Google OAuth2 callback' })
-  googleAuthRedirect(@Req() req: any): Promise<{ access_token: string }> {
+  googleAuthRedirect(
+    @Req() req: { user: any },
+  ): Promise<{ access_token: string }> {
     return this.authService.googleLogin(req);
   }
 }

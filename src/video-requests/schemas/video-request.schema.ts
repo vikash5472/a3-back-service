@@ -1,6 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
-import { VideoRequestStatus, VideoResolution, VideoAspectRatio } from '../../common/enums';
+import {
+  VideoRequestStatus,
+  VideoResolution,
+  VideoAspectRatio,
+} from '../../common/enums';
 
 @Schema({ _id: false })
 class VideoMetadata {

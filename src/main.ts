@@ -4,7 +4,6 @@ import helmet from 'helmet';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { Logger as NestLogger } from '@nestjs/common';
-import { PinoLogger as NestPinoLogger } from 'nestjs-pino';
 import { LoggerErrorInterceptor } from 'nestjs-pino';
 
 async function bootstrap() {

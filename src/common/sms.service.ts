@@ -10,7 +10,7 @@ import axios from 'axios';
 @Injectable()
 export class SmsService {
   private smsProvider: 'twilio' | 'msg91';
-  private twilioClient;
+  private twilioClient: Twilio.Twilio;
 
   constructor(private configService: ConfigService) {
     const provider = this.configService.get<string>('SMS_PROVIDER');
@@ -33,14 +33,14 @@ export class SmsService {
   async sendSms(to: string, message: string): Promise<boolean> {
     if (this.smsProvider === 'twilio') {
       try {
-        await (this.twilioClient.messages as any).create({
+        await this.twilioClient.messages.create({
           body: message,
-          from: this.configService.get('TWILIO_PHONE_NUMBER'),
+          from: this.configService.get<string>('TWILIO_PHONE_NUMBER'),
           to,
         });
         return true;
-      } catch (error) {
-        Logger.error(error);
+      } catch (error: any) {
+        Logger.error(error.message);
         throw new InternalServerErrorException('Failed to send SMS');
       }
     } else if (this.smsProvider === 'msg91') {
@@ -57,8 +57,8 @@ export class SmsService {
         }
 
         const url = 'https://control.msg91.com/api/v5/flow';
-        const authKey = this.configService.get('MSG91_AUTH_KEY');
-        const templateId = this.configService.get('MSG91_TEMPLATE_ID');
+        const authKey = this.configService.get<string>('MSG91_AUTH_KEY');
+        const templateId = this.configService.get<string>('MSG91_TEMPLATE_ID');
 
         const body: {
           template_id: string;
@@ -84,11 +84,13 @@ export class SmsService {
         };
 
         const { data }: { data: any } = await axios.post(url, body, config);
-        Logger.log('[SMS Service] MSG91: OTP sent via SMS', { data: data as any });
+        Logger.log('[SMS Service] MSG91: OTP sent via SMS', {
+          data: data,
+        });
         return true;
-      } catch (error) {
+      } catch (error: any) {
         Logger.error('[SMS Service] MSG91: Error sending OTP', {
-          error: (error as any).message,
+          error: error.message,
           response: (error as any).response?.data,
         });
         throw new InternalServerErrorException('Failed to send SMS');

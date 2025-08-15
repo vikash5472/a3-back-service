@@ -5,7 +5,7 @@ import { User, UserDocument } from './schemas/user.schema';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) { }
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   async findOne(username: string): Promise<UserDocument | undefined> {
     // This method should find a user by email or phone number

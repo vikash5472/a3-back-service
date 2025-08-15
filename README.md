@@ -1,74 +1,83 @@
-## Description
+# Video Request Service
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+This is a NestJS-based service for managing video requests. It provides a RESTful API for user authentication, video request management, and more.
 
-## Project Setup
+## Features
+
+- **User Authentication:** Secure user authentication using email/password and Google OAuth.
+- **Video Request Management:** CRUD operations for video requests.
+- **API Documentation:** Comprehensive API documentation using Swagger.
+- **Scalable Architecture:** Built with a modular and scalable architecture, using services like queues for background jobs.
+
+## API Documentation
+
+This project uses Swagger for API documentation. Once the application is running, you can access the Swagger UI at [http://localhost:3000/api](http://localhost:3000/api).
+
+The Swagger documentation provides detailed information about the available endpoints, including request and response schemas, and allows you to interact with the API directly from your browser.
+
+## Getting Started
 
 To get started with the project, follow these steps:
 
-1.  **Install Dependencies**:
+### Prerequisites
+
+- [Node.js](https://nodejs.org/en/) (v18 or higher)
+- [pnpm](https://pnpm.io/)
+
+### Installation
+
+1.  **Clone the repository**:
     ```bash
-    $ pnpm install
+    git clone <repository-url>
+    cd proj-53-service
     ```
 
-## Running the Service
+2.  **Install Dependencies**:
+    ```bash
+    pnpm install
+    ```
 
-### Development Environment
+3.  **Set up Environment Variables**:
+    Create a `.env` file in the root directory by copying the example file:
+    ```bash
+    cp .env.example .env
+    ```
+    Update the `.env` file with your configuration, such as database connection strings, API keys, and other secrets.
 
-To run the service in development mode, which includes hot-reloading for convenience:
+## Running the Application
+
+### Development
+
+To run the application in development mode with hot-reloading:
 
 ```bash
-# Run in watch mode (with hot-reloading)
-$ pnpm run start:dev
+# Watch mode
+pnpm run start:dev
 ```
 
-Alternatively, to run without watch mode:
+### Production
+
+For production, build the application and then start the server:
 
 ```bash
-# Run in development mode
-$ pnpm run start
+# Build the application
+pnpm run build
+
+# Start the production server
+pnpm run start:prod
 ```
 
-### Production Environment
+## Running Tests
 
-For production deployment, it's recommended to build the application first and then run the compiled JavaScript.
-
-1.  **Build the Application**:
-    ```bash
-    $ pnpm run build
-    ```
-    This command compiles the TypeScript code into JavaScript and places it in the `dist` directory.
-
-2.  **Run the Production Build**:
-    ```bash
-    $ pnpm run start:prod
-    ```
-    This command starts the application using the compiled JavaScript from the `dist` directory.
-
-## Environment Variables
-
-The application uses environment variables for configuration. A `.env.example` file is provided as a template.
-
-1.  **Create a `.env` file**:
-    Copy the `.env.example` file to `.env` in the root directory of the project:
-    ```bash
-    $ cp .env.example .env
-    ```
-
-2.  **Configure Environment Variables**:
-    Edit the newly created `.env` file and set the necessary environment variables, such as database connection strings, API keys, and other sensitive information.
-
-    **Important**: Do not commit your `.env` file to version control, especially if it contains sensitive information. Use environment variables provided by your deployment platform or a dedicated secrets management service in production.
-
-## Run tests
+To run the test suite:
 
 ```bash
-# unit tests
-$ pnpm run test
+# Unit tests
+pnpm run test
 
-# e2e tests
-$ pnpm run test:e2e
+# End-to-end tests
+pnpm run test:e2e
 
-# test coverage
-$ pnpm run test:cov
+# Test coverage
+pnpm run test:cov
 ```

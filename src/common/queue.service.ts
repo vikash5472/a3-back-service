@@ -8,7 +8,7 @@ export class QueueService {
 
   addToQueue(task: () => Promise<void>) {
     this.queue.push(task);
-    this.processQueue();
+    void this.processQueue();
   }
 
   private async processQueue() {
@@ -21,12 +21,10 @@ export class QueueService {
       const task = this.queue.shift();
       try {
         if (typeof task === 'function') {
-          void task();
+          await task();
         }
-      } catch (error) {
-        this.logger.error(
-          `Error processing queue task: ${(error as any).message}`,
-        );
+      } catch (error: any) {
+        this.logger.error(`Error processing queue task: ${error.message}`);
       }
     }
     this.isProcessing = false;
