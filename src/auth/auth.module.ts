@@ -7,8 +7,7 @@ import { AuthService } from './auth.service';
 import { UserModule } from '../user/user.module';
 import { AuthController } from './auth.controller';
 import { GoogleStrategy } from './google.strategy';
-import { PhoneStrategy } from './phone.strategy';
-import { OtpService } from './otp.service';
+import { LocalStrategy } from './local.strategy';
 import { CommonModule } from '../common/common.module';
 
 @Module({
@@ -29,8 +28,7 @@ import { CommonModule } from '../common/common.module';
     JwtStrategy,
     AuthService,
     GoogleStrategy,
-    PhoneStrategy,
-    OtpService,
+    LocalStrategy,
   ],
   exports: [AuthService, JwtModule, PassportModule],
   controllers: [AuthController],

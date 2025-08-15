@@ -7,11 +7,12 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
-import { PhoneStrategy } from './phone.strategy';
 import { SendgridService } from '../common/sendgrid.service';
 import { CacheService } from '../common/cache.service';
 import { QueueService } from '../common/queue.service';
 import { v4 as uuidv4 } from 'uuid';
+import * as bcrypt from 'bcrypt';
+import { RegisterUserDto } from './dto/register-user.dto';
 
 interface UserPayload {
   username: string;
@@ -32,31 +33,37 @@ export class AuthService {
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
-    private phoneStrategy: PhoneStrategy,
     private sendgridService: SendgridService,
     private cacheService: CacheService,
     private queueService: QueueService,
-  ) { }
+  ) {}
 
-  async linkPhoneNumber(userId: string, phoneNumber: string): Promise<any> {
-    try {
-      const existingUser = await this.userService.findOne(phoneNumber);
-      if (existingUser) {
-        throw new BadRequestException(
-          'Phone number already linked to another account',
-        );
-      }
-      const user = await this.userService.updateUser(userId, { phoneNumber });
-      return { message: 'Phone number linked successfully', user };
-    } catch (error) {
-      this.logger.error(
-        `Failed to link phone number: ${error.message}`,
-      );
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Failed to link phone number');
+  async register(registerUserDto: RegisterUserDto): Promise<any> {
+    const { email, password, firstName, lastName } = registerUserDto;
+    const existingUser = await this.userService.findOne(email);
+    if (existingUser) {
+      throw new BadRequestException('User with this email already exists');
     }
+    const user = await this.userService.create({
+      email,
+      password,
+      firstName,
+      lastName,
+    });
+    return this.login({
+      userId: user._id.toString(),
+      username: user.email ?? '',
+    });
+  }
+
+  async validateUser(email: string, pass: string): Promise<any> {
+    const user = await this.userService.findOne(email);
+    if (user && user.password && (await bcrypt.compare(pass, user.password))) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password, ...result } = user.toObject();
+      return result;
+    }
+    return null;
   }
 
   async linkEmail(userId: string, email: string): Promise<any> {
@@ -123,53 +130,6 @@ export class AuthService {
         throw error;
       }
       throw new InternalServerErrorException('Failed to verify email');
-    }
-  }
-
-  async sendOtp(phoneNumber: string): Promise<{ message: string }> {
-    try {
-      this.queueService.addToQueue(async () => {
-        const success = this.phoneStrategy.sendOtp(phoneNumber);
-        if (!success) {
-          this.logger.error(
-            `Failed to send OTP asynchronously to ${phoneNumber}`,
-          );
-        }
-      });
-      return { message: 'OTP request queued successfully' };
-    } catch (error) {
-      this.logger.error(
-        `Failed to queue OTP request: ${error.message}`,
-      );
-      throw new InternalServerErrorException('Failed to queue OTP request');
-    }
-  }
-
-  async loginWithOtp(phoneNumber: string, otp: string): Promise<any> {
-    try {
-      const isValid = await this.phoneStrategy.verifyOtp(phoneNumber, otp);
-      if (isValid) {
-        const user = await this.userService.findOne(phoneNumber);
-        if (user) {
-          return this.login({
-            userId: user._id?.toString(),
-            username: user.email ?? user.phoneNumber ?? '',
-          });
-        }
-        // Create new user if not found
-        const newUser = await this.userService.create({ phoneNumber });
-        return this.login({
-          userId: newUser._id?.toString(),
-          username: newUser.email ?? newUser.phoneNumber ?? '',
-        });
-      }
-      throw new UnauthorizedException('Invalid OTP');
-    } catch (error) {
-      this.logger.error(`Failed to login with OTP: ${error.message}`);
-      if (error instanceof UnauthorizedException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Failed to login with OTP');
     }
   }
 

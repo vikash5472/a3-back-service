@@ -11,11 +11,10 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiBody, ApiResponse } from '@nestjs/swagger';
 
 import { AuthService } from './auth.service';
-import { SendOtpDto } from './dto/send-otp.dto';
-import { LoginOtpDto } from './dto/login-otp.dto';
-import { LinkPhoneDto } from './dto/link-phone.dto';
 import { LinkEmailDto } from './dto/link-email.dto';
-
+import { RegisterUserDto } from './dto/register-user.dto';
+import { LoginUserDto } from './dto/login-user.dto';
+import { LocalAuthGuard } from './local-auth.guard';
 import { JwtAuthGuard } from './jwt-auth/jwt-auth.guard';
 
 interface AuthenticatedRequest extends Request {
@@ -27,54 +26,23 @@ interface AuthenticatedRequest extends Request {
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Post('send-otp')
-  @ApiOperation({ summary: 'Sends an OTP to a phone number' })
-  @ApiBody({ type: SendOtpDto })
-  @ApiResponse({ status: 201, description: 'Successfully sent OTP.' })
+  @Post('register')
+  @ApiOperation({ summary: 'Registers a new user' })
+  @ApiBody({ type: RegisterUserDto })
+  @ApiResponse({ status: 201, description: 'Successfully registered user.' })
   @ApiResponse({ status: 400, description: 'Bad request.' })
-  @ApiResponse({ status: 429, description: 'Too many requests.' })
-  async sendOtp(@Body() sendOtpDto: SendOtpDto): Promise<{ message: string }> {
-    return this.authService.sendOtp(sendOtpDto.phoneNumber);
+  async register(@Body() registerUserDto: RegisterUserDto) {
+    return this.authService.register(registerUserDto);
   }
 
-  @Post('login-otp')
-  @ApiOperation({ summary: 'Logs in a user with an OTP' })
-  @ApiBody({ type: LoginOtpDto })
+  @UseGuards(LocalAuthGuard)
+  @Post('login')
+  @ApiOperation({ summary: 'Logs in a user' })
+  @ApiBody({ type: LoginUserDto })
   @ApiResponse({ status: 201, description: 'Successfully logged in.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  @ApiResponse({ status: 429, description: 'Too many requests.' })
-  async loginOtp(
-    @Body() loginOtpDto: LoginOtpDto,
-  ): Promise<{ access_token: string }> {
-    return this.authService.loginWithOtp(
-      loginOtpDto.phoneNumber,
-      loginOtpDto.otp,
-    );
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Post('link-phone')
-  @ApiOperation({
-    summary: "Links a phone number to the authenticated user's account",
-  })
-  @ApiBody({ type: LinkPhoneDto })
-  @ApiResponse({
-    status: 200,
-    description: 'Phone number linked successfully.',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Bad request or phone number already exists.',
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  async linkPhone(
-    @ReqDecorator() req: AuthenticatedRequest,
-    @Body() linkPhoneDto: LinkPhoneDto,
-  ): Promise<{ message: string; user: any }> {
-    return this.authService.linkPhoneNumber(
-      req.user.userId,
-      linkPhoneDto.phoneNumber,
-    );
+  async login(@ReqDecorator() req: AuthenticatedRequest) {
+    return this.authService.login(req.user);
   }
 
   @UseGuards(JwtAuthGuard)
