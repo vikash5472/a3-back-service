@@ -28,6 +28,22 @@ app.use((err, req, res, next) => {
   res.status(500).send('Something broke!');
 });
 
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  // Application specific logging, cleanup, or exit
+  // For production, you might want to gracefully shut down the server
+  // process.exit(1); // Exit with a 'failure' code
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  // Application specific logging, cleanup, or exit
+  // For production, you might want to gracefully shut down the server
+  // process.exit(1); // Exit with a 'failure' code
+});
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
