@@ -240,6 +240,26 @@ const razorpayWebhook = asyncHandler(async (req, res) => {
   res.status(200).send('OK');
 });
 
+// @desc    Get user's Razorpay payment intents
+// @route   GET /api/payments/razorpay/transactions
+// @access  Private
+const getRazorpayTransactions = asyncHandler(async (req, res) => {
+  const { limit = 10, cursor } = req.query;
+  const query = { userId: req.user.id, provider: 'razorpay' };
+
+  if (cursor) {
+    query._id = { $lt: cursor };
+  }
+
+  const paymentIntents = await PaymentIntent.find(query)
+    .sort({ _id: -1 })
+    .limit(parseInt(limit, 10));
+
+  const nextCursor = paymentIntents.length === parseInt(limit, 10) ? paymentIntents[paymentIntents.length - 1]._id : null;
+
+  res.json({ paymentIntents, nextCursor });
+});
+
 module.exports = {
   getCreditPlans,
   getCreditBalance,
@@ -247,4 +267,5 @@ module.exports = {
   createPaymentIntent,
   confirmMockPayment,
   razorpayWebhook,
+  getRazorpayTransactions,
 };

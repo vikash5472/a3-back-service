@@ -12,6 +12,7 @@ const fetchProfile = async (userId) => {
     email: user.email,
     loginType: user.loginType,
     lastLogin: user.lastLogin,
+    credits: user.credits,
   };
 };
 
@@ -59,6 +60,7 @@ const updateProfile = async (userId, updateData, currentPassword) => {
     email: user.email,
     loginType: user.loginType,
     lastLogin: user.lastLogin,
+    credits: user.credits,
   };
 };
 

@@ -39,6 +39,16 @@ const updateProfileSchema = Joi.object({
   currentPassword: Joi.string().required(), // Current password is required for any profile modification
 }).min(2); // At least currentPassword and one other field must be present
 
+// Credits Schemas
+const paginationSchema = Joi.object({
+  limit: Joi.number().integer().min(1).max(100).default(10),
+  cursor: Joi.string().optional(),
+});
+
+const createIntentSchema = Joi.object({
+  planId: Joi.string().hex().length(24).required(),
+});
+
 module.exports = {
   createUserSchema,
   updateUserSchema,
@@ -46,4 +56,6 @@ module.exports = {
   registerUserSchema,
   loginUserSchema,
   updateProfileSchema,
+  paginationSchema,
+  createIntentSchema,
 };

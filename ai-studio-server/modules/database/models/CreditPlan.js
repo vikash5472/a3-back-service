@@ -38,4 +38,6 @@ const creditPlanSchema = new mongoose.Schema(
   }
 );
 
+creditPlanSchema.index({ isActive: 1, sort: 1 });
+
 module.exports = mongoose.model('CreditPlan', creditPlanSchema);
