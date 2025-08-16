@@ -3,6 +3,10 @@ require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const connectDB = require('./config/db'); // Import DB connection
+const userRoutes = require('./routes/userRoutes'); // Import user routes
+
+connectDB(); // Connect to database
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -17,12 +21,10 @@ app.use(morgan('combined'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Basic route
-app.get('/', (req, res) => {
-  res.send('Hello from AI-Studio Node.js server (Express)!');
-});
+// Routes
+app.use('/api/users', userRoutes); // Use user routes
 
-// Error handling middleware
+// Error handling middleware (should be after routes)
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send('Something broke!');
