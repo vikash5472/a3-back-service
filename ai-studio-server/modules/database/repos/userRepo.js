@@ -8,6 +8,18 @@ const createUser = async (userData) => {
   return user;
 };
 
+// @desc    Find user by email
+const findByEmail = async (email) => {
+  const user = await User.findOne({ email }).select('+password'); // Select password for login check
+  return user;
+};
+
+// @desc    Find user by ID
+const findById = async (id) => {
+  const user = await User.findById(id);
+  return user;
+};
+
 // @desc    Get all users
 // @route   GET /api/users
 // @access  Public
@@ -45,6 +57,8 @@ const deleteUser = async (id) => {
 
 module.exports = {
   createUser,
+  findByEmail,
+  findById,
   getUsers,
   getUserById,
   updateUser,
