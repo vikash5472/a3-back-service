@@ -48,8 +48,7 @@ const getProfile = asyncHandler(async (req, res) => {
     name: req.user.name,
     email: req.user.email,
     loginType: req.user.loginType,
-    lastLogin: req.user.lastLogin,
-    m: req.user
+    lastLogin: req.user.lastLogin
   });
 });
 
