@@ -8,6 +8,10 @@ const userRoutes = require('./modules/user/userRoutes'); // Import user routes
 const authRoutes = require('./modules/auth/authRoutes'); // Import auth routes
 const healthRoutes = require('./modules/health/healthRoutes'); // Import health routes
 
+const swaggerUi = require('swagger-ui-express');
+const YAML = require('yamljs');
+const swaggerDocument = YAML.load('./docs/swagger/swagger.yaml');
+
 connectDB(); // Connect to database
 
 const app = express();
@@ -17,16 +21,17 @@ const port = process.env.PORT || 3000;
 app.use(helmet());
 
 // Logging middleware
-app.use(morgan('combined'));
+app.use(morgan('dev'));
 
 // Body parser middleware (for handling JSON requests)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument)); // Swagger UI
 app.use('/api/users', userRoutes); // Use user routes
 app.use('/api/auth', authRoutes); // Use auth routes
-app.use('/', healthRoutes); // Use health routes
+app.use('/api', healthRoutes); // Use health routes
 
 // Error handling middleware (should be after routes)
 app.use((err, req, res, next) => {

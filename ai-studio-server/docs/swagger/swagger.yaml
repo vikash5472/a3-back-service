@@ -1,0 +1,331 @@
+openapi: 3.0.0
+info:
+  title: AI Studio Service API
+  version: 1.0.0
+  description: API documentation for the AI Studio Service
+
+servers:
+  - url: http://localhost:6001/api
+    description: Development server
+  - url: http://localhost:6005/api
+    description: Production server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: User ID
+          example: 60d5ec49f8c7d00015f8c7d0
+        name:
+          type: string
+          example: John Doe
+        email:
+          type: string
+          format: email
+          example: john.doe@example.com
+        loginType:
+          type: string
+          enum: [email, google]
+          example: email
+        lastLogin:
+          type: string
+          format: date-time
+          example: 2023-10-27T10:00:00.000Z
+      required:
+        - name
+        - email
+
+    RegisterInput:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Jane Doe
+        email:
+          type: string
+          format: email
+          example: jane.doe@example.com
+        password:
+          type: string
+          format: password
+          minLength: 6
+          example: password123
+        loginType:
+          type: string
+          enum: [email, google]
+          example: email
+      required:
+        - name
+        - email
+        - password
+
+    LoginInput:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: john.doe@example.com
+        password:
+          type: string
+          format: password
+          example: password123
+      required:
+        - email
+        - password
+
+    LoginResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 60d5ec49f8c7d00015f8c7d0
+        name:
+          type: string
+          example: John Doe
+        email:
+          type: string
+          format: email
+          example: john.doe@example.com
+        token:
+          type: string
+          description: JWT token
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+      required:
+        - _id
+        - name
+        - email
+        - token
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Something went wrong!
+        stack:
+          type: string
+          description: Stack trace (only in development)
+      required:
+        - message
+
+paths:
+  /users:
+    get:
+      summary: Get all users
+      tags:
+        - Users
+      responses:
+        200:
+          description: A list of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        500:
+          $ref: "#/components/schemas/ErrorResponse"
+    post:
+      summary: Create a new user
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        201:
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        400:
+          $ref: "#/components/schemas/ErrorResponse"
+        500:
+          $ref: "#/components/schemas/ErrorResponse"
+
+  /users/{id}:
+    get:
+      summary: Get a single user by ID
+      tags:
+        - Users
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user to retrieve
+      responses:
+        200:
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        404:
+          $ref: "#/components/schemas/ErrorResponse"
+        500:
+          $ref: "#/components/schemas/ErrorResponse"
+    put:
+      summary: Update a user by ID
+      tags:
+        - Users
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user to update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput" # Reusing for simplicity, but ideally a separate UpdateUserInput
+      responses:
+        200:
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        400:
+          $ref: "#/components/schemas/ErrorResponse"
+        404:
+          $ref: "#/components/schemas/ErrorResponse"
+        500:
+          $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      summary: Delete a user by ID
+      tags:
+        - Users
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID of the user to delete
+      responses:
+        200:
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User removed
+        404:
+          $ref: "#/components/schemas/ErrorResponse"
+        500:
+          $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/register:
+    post:
+      summary: Register a new user
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterInput"
+      responses:
+        201:
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        400:
+          $ref: "#/components/schemas/ErrorResponse"
+        500:
+          $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      summary: Authenticate and log in a user
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        200:
+          description: User logged in successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        400:
+          $ref: "#/components/schemas/ErrorResponse"
+        401:
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        500:
+          $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/profile:
+    get:
+      summary: Get authenticated user profile
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        401:
+          $ref: "#/components/schemas/ErrorResponse"
+        500:
+          $ref: "#/components/schemas/ErrorResponse"
+
+  /:
+    get:
+      summary: Health check endpoint
+      tags:
+        - Health
+      responses:
+        200:
+          description: API is up and running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: UP
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: 2023-10-27T10:00:00.000Z
+        500:
+          $ref: "#/components/schemas/ErrorResponse"
