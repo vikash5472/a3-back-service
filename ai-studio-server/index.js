@@ -7,6 +7,7 @@ const connectDB = require('./config/db'); // Import DB connection
 const authRoutes = require('./modules/auth/authRoutes'); // Import auth routes
 const healthRoutes = require('./modules/health/healthRoutes'); // Import health routes
 const profileRoutes = require('./modules/profile/profileRoutes'); // Import profile routes
+const creditRoutes = require('./modules/credits/creditRoutes'); // Import credit routes
 
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
@@ -33,6 +34,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument)); // Swagger UI
 app.use('/api/auth', authRoutes); // Use auth routes
 app.use('/api/profile', profileRoutes); // Use profile routes
+app.use('/api/credits', creditRoutes); // Use credit routes
 app.use('/api', healthRoutes); // Use health routes
 
 // Error handling middleware (should be after routes)

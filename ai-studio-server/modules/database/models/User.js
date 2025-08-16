@@ -42,6 +42,14 @@ const userSchema = mongoose.Schema(
     lastLogin: {
       type: Date,
     },
+    credits: {
+      type: Number,
+      default: 0,
+    },
+    signupCreditGranted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true, // Adds createdAt and updatedAt timestamps

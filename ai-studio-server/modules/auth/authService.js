@@ -1,8 +1,10 @@
 const userRepo = require('../database/repos/userRepo');
 const { generateToken } = require('./../../utils/jwt');
+const creditsService = require('../credits/creditsService');
 
 const registerUser = async (userData) => {
   const user = await userRepo.createUser(userData);
+  await creditsService.grantSignupBonus(user._id);
   // Do not return password or sensitive info
   return {
     _id: user._id,
