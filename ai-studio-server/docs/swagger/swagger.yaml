@@ -10,6 +10,8 @@ tags:
     description: User authentication and authorization operations
   - name: Profile
     description: User profile management operations
+  - name: Credits
+    description: User credits management operations
 
 servers:
   - url: http://localhost:6001/api
@@ -123,6 +125,122 @@ components:
           description: Stack trace (only in development)
       required:
         - message
+
+    CreditPlan:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: 60d5ec49f8c7d00015f8c7d0
+        code:
+          type: string
+          example: "100_CREDITS"
+        displayName:
+          type: string
+          example: "100 Credits"
+        priceCurrency:
+          type: string
+          example: "USD"
+        priceMinor:
+          type: integer
+          example: 1000
+        credits:
+          type: integer
+          example: 100
+        isActive:
+          type: boolean
+          example: true
+        sort:
+          type: integer
+          example: 1
+
+    CreditTransaction:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "60d5ec49f8c7d00015f8c7d0"
+        userId:
+          type: string
+          example: "60d5ec49f8c7d00015f8c7d0"
+        type:
+          type: string
+          enum: [SIGNUP_BONUS, PURCHASE, DEBIT, ADJUSTMENT, REFUND]
+          example: "PURCHASE"
+        amount:
+          type: integer
+          example: 100
+        balanceAfter:
+          type: integer
+          example: 105
+        status:
+          type: string
+          enum: [PENDING, SUCCESS, FAILED]
+          example: "SUCCESS"
+        meta:
+          type: object
+          example: {}
+
+    CreditBalance:
+      type: object
+      properties:
+        balance:
+          type: integer
+          example: 105
+
+    PaymentIntent:
+      type: object
+      properties:
+        intentId:
+          type: string
+          example: "60d5ec49f8c7d00015f8c7d0"
+        provider:
+          type: string
+          example: "mock"
+        providerOrderId:
+          type: string
+          example: "mock_1678886400000"
+        idempotencyKey:
+          type: string
+          format: uuid
+          example: "f81d4fae-7dec-11d0-a765-00a0c91e6bf6"
+        amount:
+          type: object
+          properties:
+            currency:
+              type: string
+              example: "USD"
+            minor:
+              type: integer
+              example: 1000
+        credits:
+          type: integer
+          example: 100
+        plan:
+          type: object
+          properties:
+            id:
+              type: string
+              example: "60d5ec49f8c7d00015f8c7d0"
+            code:
+              type: string
+              example: "100_CREDITS"
+            name:
+              type: string
+              example: "100 Credits"
+
+    PaymentIntentConfirmation:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: true
+        newBalance:
+          type: integer
+          example: 205
+        alreadyProcessed:
+          type: boolean
+          example: false
 
 paths:
   /auth/register:
@@ -260,5 +378,158 @@ paths:
                     type: string
                     format: date-time
                     example: 2023-10-27T10:00:00.000Z
+        500:
+          $ref: "#/components/schemas/ErrorResponse"
+
+  /credits/plans:
+    get:
+      summary: Get active credit plans
+      tags:
+        - Credits
+      responses:
+        200:
+          description: A list of active credit plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CreditPlan"
+        500:
+          $ref: "#/components/schemas/ErrorResponse"
+
+  /credits/balance:
+    get:
+      summary: Get current user's credit balance
+      tags:
+        - Credits
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: The user's current credit balance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreditBalance"
+        401:
+          $ref: "#/components/schemas/ErrorResponse"
+        404:
+          $ref: "#/components/schemas/ErrorResponse"
+        500:
+          $ref: "#/components/schemas/ErrorResponse"
+
+  /credits/transactions:
+    get:
+      summary: Get current user's credit transactions
+      tags:
+        - Credits
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: The number of items to return
+        - in: query
+          name: cursor
+          schema:
+            type: string
+          description: The cursor for pagination
+      responses:
+        200:
+          description: A paginated list of credit transactions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transactions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CreditTransaction"
+                  nextCursor:
+                    type: string
+                    nullable: true
+                    example: "60d5ec49f8c7d00015f8c7d0"
+        401:
+          $ref: "#/components/schemas/ErrorResponse"
+        500:
+          $ref: "#/components/schemas/ErrorResponse"
+
+  /credits/intent:
+    post:
+      summary: Create a payment intent for a credit plan
+      tags:
+        - Credits
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                planId:
+                  type: string
+                  example: "60d5ec49f8c7d00015f8c7d0"
+              required:
+                - planId
+      responses:
+        201:
+          description: The payment intent was created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentIntent"
+        400:
+          $ref: "#/components/schemas/ErrorResponse"
+        401:
+          $ref: "#/components/schemas/ErrorResponse"
+        500:
+          $ref: "#/components/schemas/ErrorResponse"
+
+  /credits/mock/confirm:
+    post:
+      summary: Confirm a mock payment intent
+      tags:
+        - Credits
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                intentId:
+                  type: string
+                  example: "60d5ec49f8c7d00015f8c7d0"
+                idempotencyKey:
+                  type: string
+                  format: uuid
+                  example: "f81d4fae-7dec-11d0-a765-00a0c91e6bf6"
+              required:
+                - intentId
+                - idempotencyKey
+      responses:
+        200:
+          description: The payment was confirmed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentIntentConfirmation"
+        400:
+          $ref: "#/components/schemas/ErrorResponse"
+        401:
+          $ref: "#/components/schemas/ErrorResponse"
+        404:
+          $ref: "#/components/schemas/ErrorResponse"
+        409:
+          $ref: "#/components/schemas/ErrorResponse"
         500:
           $ref: "#/components/schemas/ErrorResponse"

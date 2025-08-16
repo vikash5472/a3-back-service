@@ -6,6 +6,9 @@ const CreditPlan = require('../database/models/CreditPlan');
 const PaymentIntent = require('../database/models/PaymentIntent');
 const CreditTransaction = require('../database/models/CreditTransaction');
 const User = require('../database/models/User');
+const { PROVIDER_MODE, RAZORPAY_KEY_ID } = require('../../config/creditsConfig');
+const { createOrder, verifyWebhookSignature } = require('../razorpay/razorpayService');
+const { confirmRazorpayPayment } = require('./creditsService');
 
 // @desc    Get active credit plans
 // @route   GET /api/credits/plans
@@ -64,34 +67,75 @@ const createPaymentIntent = asyncHandler(async (req, res) => {
     throw new Error('INVALID_PLAN');
   }
 
-  const idempotencyKey = uuidv4();
-  const providerOrderId = `mock_${new Date().getTime()}`;
+  if (PROVIDER_MODE === 'razorpay') {
+    if (plan.priceCurrency !== 'INR') {
+      res.status(400);
+      throw new Error('UNSUPPORTED_CURRENCY');
+    }
 
-  const paymentIntent = await PaymentIntent.create({
-    userId: req.user.id,
-    planId: plan._id,
-    planSnapshot: {
-      code: plan.code,
-      displayName: plan.displayName,
-      priceCurrency: plan.priceCurrency,
-      priceMinor: plan.priceMinor,
+    const intent = await PaymentIntent.create({
+      userId: req.user.id,
+      planId: plan._id,
+      planSnapshot: {
+        code: plan.code,
+        displayName: plan.displayName,
+        priceCurrency: plan.priceCurrency,
+        priceMinor: plan.priceMinor,
+        credits: plan.credits,
+      },
+      provider: 'razorpay',
+      status: 'CREATED',
+      idempotencyKey: uuidv4(), // for client-side deduplication
+    });
+
+    const order = await createOrder(plan.priceMinor, intent._id.toString(), {
+      userId: req.user.id,
+      planId: plan._id.toString(),
+      planCode: plan.code,
+    });
+
+    intent.providerOrderId = order.id;
+    await intent.save();
+
+    res.status(201).json({
+      intentId: intent._id,
+      provider: 'razorpay',
+      orderId: order.id,
+      keyId: RAZORPAY_KEY_ID,
+      amount: { currency: plan.priceCurrency, minor: plan.priceMinor },
       credits: plan.credits,
-    },
-    provider: 'mock',
-    providerOrderId,
-    status: 'CREATED',
-    idempotencyKey,
-  });
+      plan: { id: plan._id, code: plan.code, name: plan.displayName },
+    });
+  } else {
+    const idempotencyKey = uuidv4();
+    const providerOrderId = `mock_${new Date().getTime()}`;
 
-  res.status(201).json({
-    intentId: paymentIntent._id,
-    provider: 'mock',
-    providerOrderId,
-    idempotencyKey,
-    amount: { currency: plan.priceCurrency, minor: plan.priceMinor },
-    credits: plan.credits,
-    plan: { id: plan._id, code: plan.code, name: plan.displayName },
-  });
+    const paymentIntent = await PaymentIntent.create({
+      userId: req.user.id,
+      planId: plan._id,
+      planSnapshot: {
+        code: plan.code,
+        displayName: plan.displayName,
+        priceCurrency: plan.priceCurrency,
+        priceMinor: plan.priceMinor,
+        credits: plan.credits,
+      },
+      provider: 'mock',
+      providerOrderId,
+      status: 'CREATED',
+      idempotencyKey,
+    });
+
+    res.status(201).json({
+      intentId: paymentIntent._id,
+      provider: 'mock',
+      providerOrderId,
+      idempotencyKey,
+      amount: { currency: plan.priceCurrency, minor: plan.priceMinor },
+      credits: plan.credits,
+      plan: { id: plan._id, code: plan.code, name: plan.displayName },
+    });
+  }
 });
 
 // @desc    Confirm a mock payment
@@ -169,10 +213,38 @@ const confirmMockPayment = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Handle Razorpay webhooks
+// @route   POST /api/credits/razorpay/webhook
+// @access  Public
+const razorpayWebhook = asyncHandler(async (req, res) => {
+  const signature = req.headers['x-razorpay-signature'];
+  const isValid = verifyWebhookSignature(req.rawBody, signature);
+
+  if (!isValid) {
+    return res.status(400).send('Invalid signature');
+  }
+
+  const event = req.body;
+
+  if (event.event === 'payment.captured') {
+    await confirmRazorpayPayment(event.payload.payment.entity);
+  } else if (event.event === 'payment.failed') {
+    const { order_id } = event.payload.payment.entity;
+    const intent = await PaymentIntent.findOne({ providerOrderId: order_id });
+    if (intent && intent.status !== 'PAID') {
+      intent.status = 'FAILED';
+      await intent.save();
+    }
+  }
+
+  res.status(200).send('OK');
+});
+
 module.exports = {
   getCreditPlans,
   getCreditBalance,
   getCreditTransactions,
   createPaymentIntent,
   confirmMockPayment,
+  razorpayWebhook,
 };

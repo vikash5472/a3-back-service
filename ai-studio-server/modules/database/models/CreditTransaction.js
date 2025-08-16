@@ -36,5 +36,6 @@ const creditTransactionSchema = new mongoose.Schema(
 );
 
 creditTransactionSchema.index({ userId: 1, createdAt: -1 });
+creditTransactionSchema.index({ 'meta.providerPaymentId': 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model('CreditTransaction', creditTransactionSchema);

@@ -26,6 +26,10 @@ const paymentIntentSchema = new mongoose.Schema(
     },
     providerOrderId: {
       type: String,
+      index: true,
+    },
+    providerPaymentIds: {
+      type: [String],
     },
     status: {
       type: String,

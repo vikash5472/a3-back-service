@@ -1,0 +1,15 @@
+so i need to check, if this flow or feature is implemented or not. if not then implement it and if any issue fix that
+
+user signup and get some credit.
+user logins and all routes are authenticated by jwt
+user will able to update his profile data and fetch it as well.
+user will able so see his remaining credit in profile.
+user will able to but credit using razorpay
+there are some plans for credits which user can fetch and select to buy.
+once payment is successfull and validated the transaction credit will be added user account.
+user will able to see his credit ulitizations and credit statements in paginated way.
+user will able to see the razorpay txn in paginated way.
+
+these should be secure and fail safe.
+optimized and performant.
+these are basics which should be implemented.

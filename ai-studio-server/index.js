@@ -7,7 +7,7 @@ const connectDB = require('./config/db'); // Import DB connection
 const authRoutes = require('./modules/auth/authRoutes'); // Import auth routes
 const healthRoutes = require('./modules/health/healthRoutes'); // Import health routes
 const profileRoutes = require('./modules/profile/profileRoutes'); // Import profile routes
-const creditRoutes = require('./modules/credits/creditRoutes'); // Import credit routes
+const { creditRoutes, razorpayWebhook } = require('./modules/credits/creditRoutes'); // Import credit routes
 
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
@@ -25,6 +25,12 @@ app.use(helmet());
 
 // Logging middleware
 app.use(morgan('dev'));
+
+// Raw body parser for Razorpay webhook
+app.post('/api/credits/razorpay/webhook', express.raw({ type: 'application/json' }), (req, res, next) => {
+    req.rawBody = req.body.toString();
+    next();
+}, razorpayWebhook);
 
 // Body parser middleware (for handling JSON requests)
 app.use(express.json());

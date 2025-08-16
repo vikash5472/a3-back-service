@@ -1,4 +1,5 @@
 
+
 const express = require('express');
 const router = express.Router();
 const {
@@ -7,6 +8,7 @@ const {
   getCreditTransactions,
   createPaymentIntent,
   confirmMockPayment,
+  razorpayWebhook,
 } = require('./creditsController');
 const { protect } = require('../../middlewares/authMiddleware');
 
@@ -16,4 +18,8 @@ router.get('/transactions', protect, getCreditTransactions);
 router.post('/intent', protect, createPaymentIntent);
 router.post('/mock/confirm', protect, confirmMockPayment);
 
-module.exports = router;
+module.exports = {
+    creditRoutes: router,
+    razorpayWebhook,
+};
+
