@@ -1,5 +1,5 @@
 const asyncHandler = require('express-async-handler'); // A simple middleware for handling exceptions inside of async express routes and passing them to your express error handlers.
-const userService = require('../services/userService');
+const userService = require('./../database/repos/userRepo');
 
 // @desc    Create User
 // @route   POST /api/users

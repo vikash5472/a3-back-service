@@ -4,7 +4,7 @@ const express = require('express');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const connectDB = require('./config/db'); // Import DB connection
-const userRoutes = require('./routes/userRoutes'); // Import user routes
+const userRoutes = require('./modules/user/userRoutes'); // Import user routes
 
 connectDB(); // Connect to database
 
