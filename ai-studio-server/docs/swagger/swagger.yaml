@@ -8,8 +8,8 @@ tags:
     description: API health check operations
   - name: Authentication
     description: User authentication and authorization operations
-  - name: Users
-    description: User management operations
+  - name: Profile
+    description: User profile management operations
 
 servers:
   - url: http://localhost:6001/api
@@ -125,124 +125,6 @@ components:
         - message
 
 paths:
-  /users:
-    get:
-      summary: Get all users
-      tags:
-        - Users
-      responses:
-        200:
-          description: A list of users
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/User"
-        500:
-          $ref: "#/components/schemas/ErrorResponse"
-    post:
-      summary: Create a new user
-      tags:
-        - Users
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/RegisterInput"
-      responses:
-        201:
-          description: User created successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
-        400:
-          $ref: "#/components/schemas/ErrorResponse"
-        500:
-          $ref: "#/components/schemas/ErrorResponse"
-
-  /users/{id}:
-    get:
-      summary: Get a single user by ID
-      tags:
-        - Users
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          description: ID of the user to retrieve
-      responses:
-        200:
-          description: User found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
-        404:
-          $ref: "#/components/schemas/ErrorResponse"
-        500:
-          $ref: "#/components/schemas/ErrorResponse"
-    put:
-      summary: Update a user by ID
-      tags:
-        - Users
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          description: ID of the user to update
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/RegisterInput" # Reusing for simplicity, but ideally a separate UpdateUserInput
-      responses:
-        200:
-          description: User updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
-        400:
-          $ref: "#/components/schemas/ErrorResponse"
-        404:
-          $ref: "#/components/schemas/ErrorResponse"
-        500:
-          $ref: "#/components/schemas/ErrorResponse"
-    delete:
-      summary: Delete a user by ID
-      tags:
-        - Users
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-          description: ID of the user to delete
-      responses:
-        200:
-          description: User deleted successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: User removed
-        404:
-          $ref: "#/components/schemas/ErrorResponse"
-        500:
-          $ref: "#/components/schemas/ErrorResponse"
-
   /auth/register:
     post:
       summary: Register a new user
@@ -309,6 +191,69 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
+        401:
+          $ref: "#/components/schemas/ErrorResponse"
+        500:
+          $ref: "#/components/schemas/ErrorResponse"
+
+  /profile:
+    get:
+      summary: Get current user profile
+      tags:
+        - Profile
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        401:
+          $ref: "#/components/schemas/ErrorResponse"
+        500:
+          $ref: "#/components/schemas/ErrorResponse"
+    put:
+      summary: Update current user profile
+      tags:
+        - Profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Jane Doe
+                email:
+                  type: string
+                  format: email
+                  example: jane.doe@example.com
+                password:
+                  type: string
+                  format: password
+                  minLength: 6
+                  example: newpassword123
+                currentPassword:
+                  type: string
+                  format: password
+                  example: oldpassword123
+              required:
+                - currentPassword
+      responses:
+        200:
+          description: User profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        400:
+          $ref: "#/components/schemas/ErrorResponse"
         401:
           $ref: "#/components/schemas/ErrorResponse"
         500:

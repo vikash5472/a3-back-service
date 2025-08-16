@@ -1,14 +1,19 @@
 const express = require('express');
 const router = express.Router();
+const { createValidator } = require('express-joi-validation');
+const validator = createValidator();
+
+const {
+  registerUserSchema,
+  loginUserSchema,
+} = require('../../utils/validators');
+
 const {
   registerUser,
   loginUser,
-  getProfile,
 } = require('./authController');
-const { protect } = require('./../../middlewares/authMiddleware');
 
-router.post('/register', registerUser);
-router.post('/login', loginUser);
-router.get('/profile', protect, getProfile);
+router.post('/register', validator.body(registerUserSchema), registerUser);
+router.post('/login', validator.body(loginUserSchema), loginUser);
 
 module.exports = router;

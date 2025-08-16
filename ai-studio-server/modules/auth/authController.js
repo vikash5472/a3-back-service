@@ -38,22 +38,7 @@ const loginUser = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Get user profile
-// @route   GET /api/auth/profile
-// @access  Private
-const getProfile = asyncHandler(async (req, res) => {
-  // req.user is set by the protect middleware
-  res.status(200).json({
-    _id: req.user._id,
-    name: req.user.name,
-    email: req.user.email,
-    loginType: req.user.loginType,
-    lastLogin: req.user.lastLogin
-  });
-});
-
 module.exports = {
   registerUser,
   loginUser,
-  getProfile,
 };
