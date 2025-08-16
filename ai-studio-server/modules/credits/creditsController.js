@@ -2,9 +2,9 @@
 const asyncHandler = require('express-async-handler');
 const mongoose = require('mongoose');
 const { v4: uuidv4 } = require('uuid');
-const CreditPlan = require('./models/CreditPlan');
-const PaymentIntent = require('./models/PaymentIntent');
-const CreditTransaction = require('./models/CreditTransaction');
+const CreditPlan = require('../database/models/CreditPlan');
+const PaymentIntent = require('../database/models/PaymentIntent');
+const CreditTransaction = require('../database/models/CreditTransaction');
 const User = require('../database/models/User');
 
 // @desc    Get active credit plans

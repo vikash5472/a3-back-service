@@ -1,7 +1,7 @@
 
 const mongoose = require('mongoose');
 const User = require('../database/models/User');
-const CreditTransaction = require('./models/CreditTransaction');
+const CreditTransaction = require('../database/models/CreditTransaction');
 const { SIGNUP_BONUS } = require('../../config/creditsConfig');
 
 const grantSignupBonus = async (userId) => {
