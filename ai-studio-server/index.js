@@ -6,6 +6,7 @@ const morgan = require('morgan');
 const connectDB = require('./config/db'); // Import DB connection
 const userRoutes = require('./modules/user/userRoutes'); // Import user routes
 const authRoutes = require('./modules/auth/authRoutes'); // Import auth routes
+const healthRoutes = require('./modules/health/healthRoutes'); // Import health routes
 
 connectDB(); // Connect to database
 
@@ -25,6 +26,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api/users', userRoutes); // Use user routes
 app.use('/api/auth', authRoutes); // Use auth routes
+app.use('/', healthRoutes); // Use health routes
 
 // Error handling middleware (should be after routes)
 app.use((err, req, res, next) => {
