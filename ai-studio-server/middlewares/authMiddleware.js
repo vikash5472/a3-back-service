@@ -31,8 +31,16 @@ const protect = asyncHandler(async (req, res, next) => {
       next();
     } catch (error) {
       console.error(error);
-      res.status(401);
-      throw new Error('Not authorized, token failed');
+      if (error.name === 'TokenExpiredError') {
+        res.status(401);
+        throw new Error('Not authorized, token expired');
+      } else if (error.name === 'JsonWebTokenError') {
+        res.status(401);
+        throw new Error('Not authorized, invalid token');
+      } else {
+        res.status(401);
+        throw new Error('Not authorized, token failed');
+      }
     }
   }
 
