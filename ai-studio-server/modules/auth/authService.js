@@ -14,7 +14,8 @@ const registerUser = async (userData) => {
 
 const loginUser = async (email, password) => {
   const user = await userRepo.findByEmail(email);
-
+  // console.log(user, email);
+  // return
   if (!user) {
     throw new Error('Invalid credentials');
   }

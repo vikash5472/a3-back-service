@@ -3,6 +3,13 @@ info:
   title: AI Studio Service API
   version: 1.0.0
   description: API documentation for the AI Studio Service
+tags:
+  - name: Health
+    description: API health check operations
+  - name: Authentication
+    description: User authentication and authorization operations
+  - name: Users
+    description: User management operations
 
 servers:
   - url: http://localhost:6001/api
