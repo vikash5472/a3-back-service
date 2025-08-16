@@ -11,6 +11,8 @@ const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
 const swaggerDocument = YAML.load('./docs/swagger/swagger.yaml');
 
+const errorHandler = require('./middlewares/errorMiddleware'); // Import error handler
+
 connectDB(); // Connect to database
 
 const app = express();
@@ -32,14 +34,7 @@ app.use('/api/auth', authRoutes); // Use auth routes
 app.use('/api', healthRoutes); // Use health routes
 
 // Error handling middleware (should be after routes)
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-  res.status(statusCode).json({
-    message: err.message,
-    stack: process.env.NODE_ENV === 'production' ? null : err.stack,
-  });
-});
+app.use(errorHandler);
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (reason, promise) => {
