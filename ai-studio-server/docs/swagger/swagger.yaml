@@ -358,7 +358,7 @@ paths:
         500:
           $ref: "#/components/schemas/ErrorResponse"
 
-  /:
+  /health:
     get:
       summary: Health check endpoint
       tags:
@@ -530,6 +530,46 @@ paths:
         404:
           $ref: "#/components/schemas/ErrorResponse"
         409:
+          $ref: "#/components/schemas/ErrorResponse"
+        500:
+          $ref: "#/components/schemas/ErrorResponse"
+
+  /credits/razorpay/transactions:
+    get:
+      summary: Get Razorpay transactions
+      tags:
+        - Credits
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: The number of items to return
+        - in: query
+          name: cursor
+          schema:
+            type: string
+          description: The cursor for pagination
+      responses:
+        200:
+          description: A paginated list of Razorpay transactions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  transactions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CreditTransaction"
+                  nextCursor:
+                    type: string
+                    nullable: true
+                    example: "60d5ec49f8c7d00015f8c7d0"
+        401:
           $ref: "#/components/schemas/ErrorResponse"
         500:
           $ref: "#/components/schemas/ErrorResponse"
